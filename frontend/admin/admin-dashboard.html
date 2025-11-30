@@ -1,0 +1,1820 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión de Reportes Ciudadanos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="style_dashboard.css">
+    <style>
+        .no-map-data {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+            font-style: italic;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px dashed #dee2e6;
+        }
+        
+        .notification-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            z-index: 10000;
+            max-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification-toast.show {
+            transform: translateX(0);
+        }
+        
+        .notification-toast.success {
+            background-color: #28a745;
+        }
+        
+        .notification-toast.error {
+            background-color: #dc3545;
+        }
+        
+        .notification-toast.warning {
+            background-color: #ffc107;
+            color: #000;
+        }
+        
+        .notification-toast.info {
+            background-color: #17a2b8;
+        }
+
+        /* Estilos para el tema oscuro */
+        body.dark-theme {
+            --light: #1a1d23;
+            --dark: #e9ecef;
+            --gray: #adb5bd;
+            background-color: #12161b;
+            color: #e9ecef;
+        }
+
+        body.dark-theme .sidebar,
+        body.dark-theme .topbar,
+        body.dark-theme .metric-card,
+        body.dark-theme .chart-container,
+        body.dark-theme .map-container,
+        body.dark-theme .data-table-container,
+        body.dark-theme .dependency-card,
+        body.dark-theme .team-card,
+        body.dark-theme .stat-card,
+        body.dark-theme .setting-card,
+        body.dark-theme .modal,
+        body.dark-theme .notifications-panel {
+            background: #1a1d23;
+            color: #e9ecef;
+            border-color: #2d333b;
+        }
+
+        body.dark-theme .sidebar-header,
+        body.dark-theme .modal-header,
+        body.dark-theme .modal-footer {
+            border-color: #2d333b;
+        }
+
+        body.dark-theme .search-bar {
+            background: #2d333b;
+        }
+
+        body.dark-theme .search-bar input {
+            color: #e9ecef;
+        }
+
+        body.dark-theme .search-bar input::placeholder {
+            color: #adb5bd;
+        }
+
+        body.dark-theme .menu-item {
+            color: #adb5bd;
+        }
+
+        body.dark-theme .menu-item:hover,
+        body.dark-theme .menu-item.active {
+            background-color: rgba(0, 123, 255, 0.2);
+            color: var(--primary);
+        }
+
+        body.dark-theme th,
+        body.dark-theme td {
+            border-color: #2d333b;
+            color: #e9ecef;
+        }
+
+        body.dark-theme tr:hover {
+            background-color: rgba(0, 123, 255, 0.1);
+        }
+
+        body.dark-theme .filter-select,
+        body.dark-theme .setting-group input,
+        body.dark-theme .setting-group select,
+        body.dark-theme #observations {
+            background: #2d333b;
+            border-color: #495057;
+            color: #e9ecef;
+        }
+
+        body.dark-theme .btn-outline {
+            background: transparent;
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        body.dark-theme .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        body.dark-theme .no-map-data {
+            background: #2d333b;
+            color: #adb5bd;
+            border-color: #495057;
+        }
+
+        /* Toggle Switch para tema oscuro */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #007bff;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(30px);
+        }
+
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        body.dark-theme .toggle-label {
+            color: var(--dark);
+        }
+
+        /* Estilos para el campo de contraseña */
+        .password-input-container {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+        }
+
+        body.dark-theme .toggle-password {
+            color: #adb5bd;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <i class="material-icons">dashboard</i>
+                <h2>Reportes Ciudadanos</h2>
+            </div>
+            <div class="sidebar-menu">
+                <a href="#" class="menu-item active" data-section="dashboard">
+                    <i class="material-icons">dashboard</i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="menu-item" data-section="reports">
+                    <i class="material-icons">assignment</i>
+                    <span>Reportes</span>
+                </a>
+                <a href="#" class="menu-item" data-section="dependencies">
+                    <i class="material-icons">business</i>
+                    <span>Dependencias</span>
+                </a>
+                <a href="#" class="menu-item" data-section="statistics">
+                    <i class="material-icons">bar_chart</i>
+                    <span>Estadísticas</span>
+                </a>
+                <a href="#" class="menu-item" data-section="configuration">
+                    <i class="material-icons">settings</i>
+                    <span>Configuración</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Topbar -->
+            <div class="topbar">
+                <div class="search-bar">
+                    <i class="material-icons">search</i>
+                    <input type="text" placeholder="Buscar reportes, dependencias...">
+                </div>
+                <div class="topbar-actions">
+                    <div class="notification-icon" id="notification-toggle">
+                        <i class="material-icons">notifications</i>
+                        <span class="notification-badge">5</span>
+                    </div>
+                    <div class="user-profile">
+                        <div class="user-avatar">AG</div>
+                        <div>
+                            <div>Admin General</div>
+                            <div class="user-role">Administrador</div>
+                        </div>
+                        <!-- Botón de logout añadido aquí -->
+                        <button id="logout-btn" style="margin-left: 10px; background: none; border: none; cursor: pointer; color: var(--gray);">
+                            <i class="material-icons">logout</i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications Panel -->
+            <div class="notifications-panel" id="notifications-panel">
+                <div class="notification-item">
+                    <div class="notification-icon-type alert">
+                        <i class="material-icons">warning</i>
+                    </div>
+                    <div class="notification-info">
+                        <div>Nuevo reporte de alumbrado público en Calle Principal</div>
+                        <div class="notification-time">Hace 5 minutos</div>
+                    </div>
+                </div>
+                <div class="notification-item">
+                    <div class="notification-icon-type info">
+                        <i class="material-icons">info</i>
+                    </div>
+                    <div class="notification-info">
+                        <div>Reporte #4587 ha cambiado a "En proceso"</div>
+                        <div class="notification-time">Hace 1 hora</div>
+                    </div>
+                </div>
+                <div class="notification-item">
+                    <div class="notification-icon-type success">
+                        <i class="material-icons">check_circle</i>
+                    </div>
+                    <div class="notification-info">
+                        <div>Reporte #4582 ha sido resuelto</div>
+                        <div class="notification-time">Hace 2 horas</div>
+                    </div>
+                </div>
+                <div class="notification-item">
+                    <div class="notification-icon-type warning">
+                        <i class="material-icons">schedule</i>
+                    </div>
+                    <div class="notification-info">
+                        <div>Reporte #4579 sin atención por más de 48 horas</div>
+                        <div class="notification-time">Hace 3 horas</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Section -->
+            <div class="content-section active" id="dashboard-section">
+                <!-- Dashboard Metrics -->
+                <div class="dashboard">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Total de Reportes</div>
+                            <i class="material-icons primary">assignment</i>
+                        </div>
+                        <div class="metric-value">1,247</div>
+                        <div class="metric-trend trend-up">
+                            <i class="material-icons">trending_up</i>
+                            <span>12% más que el mes anterior</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Reportes Activos</div>
+                            <i class="material-icons warning">pending_actions</i>
+                        </div>
+                        <div class="metric-value">89</div>
+                        <div class="metric-trend trend-down">
+                            <i class="material-icons">trending_down</i>
+                            <span>5% menos que la semana pasada</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Reportes Resueltos</div>
+                            <i class="material-icons success">check_circle</i>
+                        </div>
+                        <div class="metric-value">1,045</div>
+                        <div class="metric-trend trend-up">
+                            <i class="material-icons">trending_up</i>
+                            <span>8% más que el mes anterior</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Tiempo Promedio</div>
+                            <i class="material-icons gray">schedule</i>
+                        </div>
+                        <div class="metric-value">2.3 días</div>
+                        <div class="metric-trend trend-down">
+                            <i class="material-icons">trending_down</i>
+                            <span>0.5 días menos que el mes anterior</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts and Map Section -->
+                <div class="charts-section">
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <div class="chart-title">Actividad de Reportes por Dependencia</div>
+                            <div class="chart-actions">
+                                <button class="btn btn-outline">
+                                    <i class="material-icons">calendar_today</i>
+                                    <span>Este mes</span>
+                                </button>
+                                <button class="btn btn-primary">
+                                    <i class="material-icons">download</i>
+                                    <span>Exportar</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="activityChart" height="250"></canvas>
+                        </div>
+                    </div>
+                    <div class="map-container">
+                        <div class="map-header">
+                            <div class="map-title">Mapa de Incidencias</div>
+                            <div class="map-actions">
+                                <button class="btn btn-outline" id="refresh-map">
+                                    <i class="material-icons">refresh</i>
+                                </button>
+                                <button class="btn btn-outline" id="filter-map">
+                                    <i class="material-icons">filter_list</i>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="map"></div>
+                        <div class="map-legend">
+                            <div class="legend-item">
+                                <span class="legend-color resolved"></span>
+                                <span>Resuelto</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color in-progress"></span>
+                                <span>En proceso</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color pending"></span>
+                                <span>Pendiente</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color cancelled"></span>
+                                <span>Cancelado</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Section -->
+            <div class="content-section" id="reports-section">
+                <div class="data-table-container">
+                    <div class="table-header">
+                        <div class="table-title">
+                            <h3>Gestión de Reportes</h3>
+                        </div>
+                        <div class="table-filters">
+                            <select class="filter-select" id="status-filter">
+                                <option value="">Estado: Todos</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="en_proceso">En proceso</option>
+                                <option value="resuelto">Resuelto</option>
+                                <option value="cancelado">Cancelado</option>
+                            </select>
+                            <select class="filter-select" id="category-filter">
+                                <option value="">Categoría: Todas</option>
+                                <option value="Alumbrado Público">Alumbrado Público</option>
+                                <option value="Baches">Baches</option>
+                                <option value="Recolección de Basura">Recolección de Basura</option>
+                                <option value="Parques y Jardines">Parques y Jardines</option>
+                            </select>
+                            <button class="btn btn-primary" id="refresh-reports">
+                                <i class="material-icons">refresh</i>
+                                <span>Actualizar</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Descripción</th>
+                                    <th>Fecha</th>
+                                    <th>Categoría</th>
+                                    <th>Estado</th>
+                                    <th>Dependencia</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reports-table-body">
+                                <!-- Los reportes se cargarán aquí dinámicamente -->
+                                <tr>
+                                    <td colspan="7" class="loading-text">Cargando reportes...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dependencies Section -->
+            <div class="content-section" id="dependencies-section">
+                <div class="data-table-container">
+                    <div class="table-header">
+                        <div class="table-title">
+                            <h3>Gestión de Dependencias</h3>
+                        </div>
+                        <div class="table-filters">
+                            <select class="filter-select">
+                                <option>Estado: Todas</option>
+                                <option>Activas</option>
+                                <option>Inactivas</option>
+                            </select>
+                            <button class="btn btn-primary" id="add-dependency-btn">
+                                <i class="material-icons">add</i>
+                                <span>Nueva Dependencia</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="dependencies-grid" class="dependencies-grid">
+                        <!-- Las dependencias se cargarán aquí dinámicamente -->
+                        <div class="loading-text">Cargando dependencias...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Teams Section (Hidden by default) -->
+            <div class="content-section" id="teams-section">
+                <div class="data-table-container">
+                    <div class="table-header">
+                        <div class="table-title">
+                            <button class="btn btn-outline back-button" id="back-to-dependencies">
+                                <i class="material-icons">arrow_back</i>
+                                <span>Volver a Dependencias</span>
+                            </button>
+                            <h3 id="teams-department-title">Equipos de Alumbrado Público</h3>
+                        </div>
+                        <div class="table-filters">
+                            <button class="btn btn-primary">
+                                <i class="material-icons">add</i>
+                                <span>Nuevo Equipo</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="teams-grid" id="teams-container">
+                        <!-- Teams will be dynamically loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Section -->
+            <div class="content-section" id="statistics-section">
+                <div class="data-table-container">
+                    <div class="table-header">
+                        <div class="table-title">
+                            <h3>Estadísticas y Reportes</h3>
+                        </div>
+                        <div class="table-filters">
+                            <select class="filter-select">
+                                <option>Período: Este mes</option>
+                                <option>Última semana</option>
+                                <option>Último trimestre</option>
+                                <option>Este año</option>
+                            </select>
+                            <button class="btn btn-primary">
+                                <i class="material-icons">download</i>
+                                <span>Exportar PDF</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h4>Tiempos de Respuesta por Categoría</h4>
+                            <div class="chart-wrapper">
+                                <canvas id="responseTimeChart" height="200"></canvas>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Eficiencia por Dependencia</h4>
+                            <div class="chart-wrapper">
+                                <canvas id="efficiencyChart" height="200"></canvas>
+                            </div>
+                        </div>
+                        <div class="stat-card full-width">
+                            <h4>Reportes por Zona Geográfica</h4>
+                            <div id="heatmap" style="height: 300px; border-radius: var(--border-radius);"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuration Section -->
+            <div class="content-section" id="configuration-section">
+                <div class="data-table-container">
+                    <div class="table-header">
+                        <div class="table-title">
+                            <h3>Configuración del Sistema</h3>
+                        </div>
+                    </div>
+                    <div class="settings-grid">
+                        <!-- Nuevo card para tema oscuro -->
+                        <div class="setting-card">
+                            <h4>Apariencia</h4>
+                            <div class="theme-toggle">
+                                <div class="toggle-label">
+                                    <i class="material-icons">dark_mode</i>
+                                    <span>Tema Oscuro</span>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="dark-theme-toggle">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <p style="font-size: 0.8rem; color: var(--gray); margin-top: 10px;">
+                                Activa el tema oscuro para una experiencia visual más cómoda en entornos con poca luz.
+                            </p>
+                        </div>
+
+                        <div class="setting-card">
+                            <h4>Preferencias de Notificaciones</h4>
+                            <div class="setting-group">
+                                <label>Notificaciones por Email</label>
+                                <select>
+                                    <option>Activadas</option>
+                                    <option>Desactivadas</option>
+                                </select>
+                            </div>
+                            <div class="setting-group">
+                                <label>Alertas de Reportes Críticos</label>
+                                <select>
+                                    <option>Inmediatas</option>
+                                    <option>Cada hora</option>
+                                    <option>Diarias</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="setting-card">
+                            <h4>Configuración de Tiempos</h4>
+                            <div class="setting-group">
+                                <label>Tiempo máximo para asignación (horas)</label>
+                                <input type="number" value="24">
+                            </div>
+                            <div class="setting-group">
+                                <label>Tiempo máximo para resolución (días)</label>
+                                <input type="number" value="5">
+                            </div>
+                        </div>
+                        <div class="setting-card full-width">
+                            <h4>Configuración de Dependencias</h4>
+                            <div class="table-wrapper">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Dependencia</th>
+                                            <th>Descripción</th>
+                                            <th>Equipos Asignados</th>
+                                            <th>Estado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Alumbrado Público</td>
+                                            <td>Reportes relacionados con iluminación pública</td>
+                                            <td>12</td>
+                                            <td><span class="status-badge status-resolved">Activa</span></td>
+                                            <td class="action-buttons">
+                                                <button class="action-btn" title="Editar">
+                                                    <i class="material-icons">edit</i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Obras Públicas</td>
+                                            <td>Reportes de daños en vías públicas</td>
+                                            <td>8</td>
+                                            <td><span class="status-badge status-resolved">Activa</span></td>
+                                            <td class="action-buttons">
+                                                <button class="action-btn" title="Editar">
+                                                    <i class="material-icons">edit</i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Report Details -->
+    <div class="modal-overlay" id="report-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modal-report-title">Detalles del Reporte</h3>
+                <button class="modal-close" id="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-grid">
+                    <div class="modal-section">
+                        <h4>Información General</h4>
+                        <div class="info-group">
+                            <label>Descripción:</label>
+                            <p id="modal-description"></p>
+                        </div>
+                        <div class="info-group">
+                            <label>Categoría:</label>
+                            <p id="modal-category"></p>
+                        </div>
+                        <div class="info-group">
+                            <label>Fecha de Reporte:</label>
+                            <p id="modal-date"></p>
+                        </div>
+                        <div class="info-group">
+                            <label>Estado:</label>
+                            <p id="modal-status"></p>
+                        </div>
+                        <div class="info-group">
+                            <label>Dependencia:</label>
+                            <p id="modal-dependency"></p>
+                        </div>
+                        <div class="info-group">
+                            <label>Ubicación:</label>
+                            <p id="modal-address"></p>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-section">
+                        <h4>Ubicación en Mapa</h4>
+                        <div id="mini-map"></div>
+                        <div class="info-group" style="margin-top: 10px;">
+                            <label>Coordenadas:</label>
+                            <p id="modal-latlng"></p>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-section full-width" id="image-section" style="display: none;">
+                        <h4>Fotografía del Reporte</h4>
+                        <img id="modal-image" src="" alt="Fotografía del reporte" style="max-width: 100%; border-radius: 8px;">
+                    </div>
+                    
+                    <div class="modal-section full-width">
+                        <h4>Historial del Reporte</h4>
+                        <div class="timeline" id="modal-timeline">
+                            <!-- El historial se cargará aquí -->
+                        </div>
+                    </div>
+                    
+                    <div class="modal-section full-width">
+                        <h4>Observaciones Administrativas</h4>
+                        <textarea id="observations" rows="3"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancel-modal">Cancelar</button>
+                <button class="btn btn-primary" id="save-observations">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for New Dependency -->
+    <div class="modal-overlay" id="dependency-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Nueva Dependencia</h3>
+                <button class="modal-close" id="close-dependency-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="dependency-form" class="modal-grid">
+                    <div class="modal-section full-width">
+                        <div class="setting-group">
+                            <label>Nombre de la Dependencia *</label>
+                            <input type="text" id="dependency-name" placeholder="Ej: Alumbrado Público" required>
+                        </div>
+                        <div class="setting-group">
+                            <label>Descripción *</label>
+                            <textarea id="dependency-description" rows="3" placeholder="Descripción de las funciones de la dependencia" required></textarea>
+                        </div>
+                        <div class="setting-group">
+                            <label>Responsable *</label>
+                            <input type="text" id="dependency-responsible" placeholder="Nombre del responsable" required>
+                        </div>
+                        <div class="setting-group">
+                            <label>Email de Contacto *</label>
+                            <input type="email" id="dependency-email" placeholder="email@ejemplo.com" required>
+                        </div>
+                        <div class="setting-group">
+                            <label>Teléfono *</label>
+                            <input type="tel" id="dependency-phone" placeholder="+52 123 456 7890" required>
+                        </div>
+                        <div class="setting-group">
+                            <label>Contraseña *</label>
+                            <div class="password-input-container">
+                                <input type="password" id="dependency-password" placeholder="Ingrese una contraseña segura" required>
+                                <button type="button" class="toggle-password" id="toggle-dependency-password">
+                                    <i class="material-icons">visibility</i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="setting-group">
+                            <label>Confirmar Contraseña *</label>
+                            <div class="password-input-container">
+                                <input type="password" id="dependency-confirm-password" placeholder="Confirme la contraseña" required>
+                                <button type="button" class="toggle-password" id="toggle-dependency-confirm-password">
+                                    <i class="material-icons">visibility</i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="setting-group">
+                            <label>Estado</label>
+                            <select id="dependency-status">
+                                <option value="active">Activa</option>
+                                <option value="inactive">Inactiva</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancel-dependency">Cancelar</button>
+                <button class="btn btn-primary" id="save-dependency">Crear Dependencia</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // ✅ VERIFICACIÓN DE AUTENTICACIÓN Y CONFIGURACIÓN DE LOGOUT
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. Primero verificamos autenticación
+            const isAuthenticated = localStorage.getItem('citycare-auth');
+            if (isAuthenticated !== 'true') {
+                window.location.href = 'login.html';
+                return; // Detenemos la ejecución si no está autenticado
+            }
+            
+            // 2. Configuración del tema oscuro
+            const darkThemeToggle = document.getElementById('dark-theme-toggle');
+            const body = document.body;
+            
+            // Cargar preferencia del tema
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                body.classList.add('dark-theme');
+                darkThemeToggle.checked = true;
+            }
+            
+            // Event listener para el toggle del tema oscuro
+            darkThemeToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    body.classList.add('dark-theme');
+                    localStorage.setItem('theme', 'dark');
+                    showNotification('Tema oscuro activado', 'success');
+                } else {
+                    body.classList.remove('dark-theme');
+                    localStorage.setItem('theme', 'light');
+                    showNotification('Tema claro activado', 'success');
+                }
+            });
+            
+            // 3. Configuramos el logout
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+                        localStorage.removeItem('citycare-auth');
+                        localStorage.removeItem('citycare-user');
+                        window.location.href = 'login.html';
+                    }
+                });
+            }
+
+            // ===================================================================
+            // ✅ NUEVA FUNCIÓN: loadDependencies
+            // ===================================================================
+            async function loadDependencies() {
+                const grid = document.getElementById('dependencies-grid');
+                if (!grid) {
+                    console.error('Elemento dependencies-grid no encontrado');
+                    return;
+                }
+                
+                grid.innerHTML = '<div class="loading-text">Cargando dependencias...</div>';
+
+                try {
+                    // Petición al API Gateway -> Redirige al puerto 3003
+                    const response = await fetch('http://localhost:3000/api/dependencies');
+                    
+                    // Verificar si la respuesta es OK
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP: ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+
+                    if (result.success && result.data && result.data.length > 0) {
+                        grid.innerHTML = ''; // Limpiar loading
+                        
+                        result.data.forEach(dep => {
+                            const card = document.createElement('div');
+                            card.className = 'dependency-card';
+                            // Agregamos data-id para poder usarlo luego si queremos editar
+                            card.setAttribute('data-id', dep.id);
+                            
+                            // Sanitizar datos para prevenir XSS y manejar valores nulos
+                            const name = dep.name || 'Sin nombre';
+                            const description = dep.description || 'Sin descripción';
+                            const responsible = dep.responsible || 'No asignado';
+                            const email = dep.email || 'No disponible';
+                            
+                            card.innerHTML = `
+                                <div class="dependency-header">
+                                    <div class="dependency-icon">
+                                        <i class="material-icons">business</i>
+                                    </div>
+                                    <div class="dependency-info">
+                                        <h3>${name}</h3>
+                                        <div class="dependency-description">${description}</div>
+                                    </div>
+                                </div>
+                                <div class="dependency-stats">
+                                    <div class="stat-item">
+                                        <div class="stat-label">Responsable</div>
+                                        <div class="stat-value" style="font-size: 0.9rem">${responsible}</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-label">Email (Login)</div>
+                                        <div class="stat-value" style="font-size: 0.9rem">${email}</div>
+                                    </div>
+                                </div>
+                            `;
+                            grid.appendChild(card);
+                        });
+                    } else {
+                        grid.innerHTML = '<div class="no-map-data">No hay dependencias registradas aún.</div>';
+                    }
+                } catch (error) {
+                    console.error('Error cargando dependencias:', error);
+                    grid.innerHTML = '<div class="no-map-data">Error al conectar con el servicio de dependencias.</div>';
+                }
+            }
+
+            // ===================================================================
+            // ✅ FUNCIÓN ACTUALIZADA: setupDependencyForm
+            // ===================================================================
+            function setupDependencyForm() {
+                const saveDependencyBtn = document.getElementById('save-dependency');
+                const dependencyModal = document.getElementById('dependency-modal');
+
+                if (saveDependencyBtn) {
+                    saveDependencyBtn.addEventListener('click', async function() {
+                        // 1. Obtener todos los datos del formulario
+                        const name = document.getElementById('dependency-name').value;
+                        const description = document.getElementById('dependency-description').value;
+                        const responsible = document.getElementById('dependency-responsible').value;
+                        const email = document.getElementById('dependency-email').value;
+                        const phone = document.getElementById('dependency-phone').value;
+                        const password = document.getElementById('dependency-password').value;
+                        const confirmPassword = document.getElementById('dependency-confirm-password').value;
+
+                        // 2. Validaciones básicas
+                        if (!name || !email || !password || !responsible) {
+                            alert('Por favor complete los campos obligatorios.');
+                            return;
+                        }
+                        if (password !== confirmPassword) {
+                            alert('Las contraseñas no coinciden.');
+                            return;
+                        }
+
+                        // 3. UI: Mostrar estado de carga
+                        const originalText = saveDependencyBtn.textContent;
+                        saveDependencyBtn.textContent = 'Procesando...';
+                        saveDependencyBtn.disabled = true;
+
+                        try {
+                            // PASO A: Crear Usuario en Auth Service (Puerto 3001)
+                            console.log("1️⃣ Creando usuario de acceso...");
+                            const authResponse = await fetch('http://localhost:3000/api/auth/register', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    name: name,
+                                    email: email,
+                                    password: password,
+                                    role: 'dependencia'
+                                })
+                            });
+
+                            // Verificar respuesta HTTP
+                            if (!authResponse.ok) {
+                                throw new Error(`Error HTTP en Auth: ${authResponse.status}`);
+                            }
+
+                            const authData = await authResponse.json();
+
+                            if (!authData.success) {
+                                throw new Error('Error en Auth: ' + (authData.message || 'No se pudo crear el usuario'));
+                            }
+
+                            const newUserId = authData.user.id; // ¡Aquí tenemos el ID vital!
+                            console.log("✅ Usuario creado con ID:", newUserId);
+
+                            // PASO B: Crear Perfil en Dependency Service (Puerto 3003)
+                            console.log("2️⃣ Creando perfil de dependencia...");
+                            const depResponse = await fetch('http://localhost:3000/api/dependencies', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    userId: newUserId,  // Vinculamos con el ID que nos dio Auth
+                                    name: name,
+                                    description: description,
+                                    responsible: responsible,
+                                    phone: phone,
+                                    email: email  // Incluimos el email también en el perfil
+                                })
+                            });
+
+                            // Verificar respuesta HTTP
+                            if (!depResponse.ok) {
+                                throw new Error(`Error HTTP en Dependency: ${depResponse.status}`);
+                            }
+
+                            const depData = await depResponse.json();
+
+                            if (!depData.success) {
+                                throw new Error('Error en Dependency: ' + depData.message);
+                            }
+
+                            // SI TODO SALIÓ BIEN:
+                            alert('¡Dependencia creada exitosamente!');
+                            dependencyModal.classList.remove('active');
+                            
+                            // Limpiar formulario
+                            document.getElementById('dependency-form').reset();
+                            
+                            // Recargar la lista para ver la nueva dependencia
+                            loadDependencies();
+
+                        } catch (error) {
+                            console.error('Error en el proceso de creación:', error);
+                            alert('❌ ' + error.message);
+                        } finally {
+                            saveDependencyBtn.textContent = originalText;
+                            saveDependencyBtn.disabled = false;
+                        }
+                    });
+                }
+                
+                // Configuración de botones de cancelar/cerrar (se mantiene igual)
+                const closeBtns = [document.getElementById('cancel-dependency'), document.getElementById('close-dependency-modal')];
+                closeBtns.forEach(btn => {
+                    if(btn) btn.addEventListener('click', () => {
+                        dependencyModal.classList.remove('active');
+                        // Limpiar formulario al cancelar
+                        document.getElementById('dependency-form').reset();
+                    });
+                });
+            }
+
+            // 4. Funcionalidad para mostrar/ocultar contraseña
+            function setupPasswordToggle() {
+                const togglePassword = document.getElementById('toggle-dependency-password');
+                const toggleConfirmPassword = document.getElementById('toggle-dependency-confirm-password');
+                const passwordInput = document.getElementById('dependency-password');
+                const confirmPasswordInput = document.getElementById('dependency-confirm-password');
+
+                if (togglePassword && passwordInput) {
+                    togglePassword.addEventListener('click', function() {
+                        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                        passwordInput.setAttribute('type', type);
+                        this.innerHTML = type === 'password' ? '<i class="material-icons">visibility</i>' : '<i class="material-icons">visibility_off</i>';
+                    });
+                }
+
+                if (toggleConfirmPassword && confirmPasswordInput) {
+                    toggleConfirmPassword.addEventListener('click', function() {
+                        const type = confirmPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                        confirmPasswordInput.setAttribute('type', type);
+                        this.innerHTML = type === 'password' ? '<i class="material-icons">visibility</i>' : '<i class="material-icons">visibility_off</i>';
+                    });
+                }
+            }
+            
+            // Variables globales para controlar el mapa mini
+            let miniMap = null;
+            let miniMapMarker = null;
+            
+            // ===================================================================
+            // ✅ FUNCIÓN CORREGIDA: showReportDetails - EL MENSAJERO
+            // ===================================================================
+            async function showReportDetails(reportId) {
+                try {
+                    console.log(`🔍 Buscando detalles del reporte ID: ${reportId}`);
+                    
+                    // 1. Petición al API Gateway (Puerto 3000)
+                    const response = await fetch(`http://localhost:3000/api/reports/${reportId}`);
+                    const result = await response.json();
+
+                    if (result.success) {
+                        // 2. Si lo encuentra, se lo pasa a la función visual (La que ya arreglaste)
+                        displayReportDetails(result.data);
+                    } else {
+                        console.error('El servidor respondió con error:', result.message);
+                        alert('No se pudieron cargar los detalles: ' + result.message);
+                    }
+                } catch (error) {
+                    console.error('❌ Error de red al buscar detalles:', error);
+                    alert('Error de conexión con el servidor.');
+                }
+            }
+            
+            // 5. 🚀 AHORA SÍ - TODO EL CÓDIGO ORIGINAL DEL DASHBOARD
+            const teamsData = {
+                'alumbrado': [
+                    { name: 'Carlos Rodríguez', role: 'Jefe de Equipo', inProgress: 5, resolved: 42, avgDays: 2.1 },
+                    { name: 'María González', role: 'Técnico Senior', inProgress: 3, resolved: 38, avgDays: 1.8 },
+                    { name: 'Juan Pérez', role: 'Técnico', inProgress: 2, resolved: 25, avgDays: 2.3 },
+                    { name: 'Ana Martínez', role: 'Técnico', inProgress: 2, resolved: 30, avgDays: 2.0 }
+                ],
+                'obras': [
+                    { name: 'Roberto Silva', role: 'Jefe de Equipo', inProgress: 4, resolved: 35, avgDays: 1.8 },
+                    { name: 'Laura Mendoza', role: 'Técnico Senior', inProgress: 2, resolved: 28, avgDays: 1.6 },
+                    { name: 'Pedro López', role: 'Técnico', inProgress: 1, resolved: 20, avgDays: 2.1 },
+                    { name: 'Sofia Ramírez', role: 'Técnico', inProgress: 1, resolved: 22, avgDays: 1.9 }
+                ],
+                'servicios': [
+                    { name: 'Miguel Ángel Torres', role: 'Jefe de Equipo', inProgress: 6, resolved: 40, avgDays: 3.2 },
+                    { name: 'Carmen Ruiz', role: 'Técnico Senior', inProgress: 4, resolved: 35, avgDays: 2.9 },
+                    { name: 'Jorge Hernández', role: 'Técnico', inProgress: 3, resolved: 28, avgDays: 3.4 },
+                    { name: 'Patricia Castro', role: 'Técnico', inProgress: 2, resolved: 25, avgDays: 3.1 }
+                ],
+                'parques': [
+                    { name: 'Fernando Reyes', role: 'Jefe de Equipo', inProgress: 3, resolved: 32, avgDays: 2.7 },
+                    { name: 'Gabriela Ortega', role: 'Técnico Senior', inProgress: 2, resolved: 28, avgDays: 2.5 },
+                    { name: 'Ricardo Vargas', role: 'Técnico', inProgress: 1, resolved: 22, avgDays: 2.9 },
+                    { name: 'Diana Flores', role: 'Técnico', inProgress: 2, resolved: 25, avgDays: 2.6 }
+                ]
+            };
+
+            // Department names mapping
+            const departmentNames = {
+                'alumbrado': 'Alumbrado Público',
+                'obras': 'Obras Públicas',
+                'servicios': 'Servicios Públicos',
+                'parques': 'Parques y Jardines'
+            };
+
+            // Initialize charts
+            const activityCtx = document.getElementById('activityChart');
+            if (activityCtx) {
+                const activityChart = new Chart(activityCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Alumbrado', 'Baches', 'Recolección', 'Parques', 'Agua', 'Drenaje'],
+                        datasets: [{
+                            label: 'Reportes Activos',
+                            data: [12, 19, 8, 5, 7, 3],
+                            backgroundColor: '#007BFF',
+                            borderWidth: 0
+                        }, {
+                            label: 'Reportes Resueltos',
+                            data: [25, 32, 18, 12, 15, 8],
+                            backgroundColor: '#28A745',
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    drawBorder: false
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Response Time Chart
+            const responseTimeCtx = document.getElementById('responseTimeChart');
+            if (responseTimeCtx) {
+                const responseTimeChart = new Chart(responseTimeCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Alumbrado', 'Baches', 'Recolección', 'Parques'],
+                        datasets: [{
+                            label: 'Tiempo Promedio (días)',
+                            data: [2.3, 1.8, 3.2, 2.7],
+                            backgroundColor: '#007BFF',
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    drawBorder: false
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Efficiency Chart
+            const efficiencyCtx = document.getElementById('efficiencyChart');
+            if (efficiencyCtx) {
+                const efficiencyChart = new Chart(efficiencyCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Alumbrado', 'Obras', 'Servicios', 'Parques'],
+                        datasets: [{
+                            data: [25, 20, 15, 18],
+                            backgroundColor: [
+                                '#007BFF',
+                                '#28A745',
+                                '#FFC107',
+                                '#DC3545'
+                            ],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Initialize map
+            const mapElement = document.getElementById('map');
+            if (mapElement) {
+                const map = L.map('map').setView([19.4326, -99.1332], 12);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+
+                // Add sample markers with different colors based on status
+                const resolvedIcon = L.divIcon({
+                    html: '<div style="background-color: #28A745; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>',
+                    className: 'marker-icon',
+                    iconSize: [16, 16]
+                });
+                
+                const inProgressIcon = L.divIcon({
+                    html: '<div style="background-color: #FFC107; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>',
+                    className: 'marker-icon',
+                    iconSize: [16, 16]
+                });
+                
+                const pendingIcon = L.divIcon({
+                    html: '<div style="background-color: #DC3545; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>',
+                    className: 'marker-icon',
+                    iconSize: [16, 16]
+                });
+                
+                const cancelledIcon = L.divIcon({
+                    html: '<div style="background-color: #6C757D; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>',
+                    className: 'marker-icon',
+                    iconSize: [16, 16]
+                });
+
+                L.marker([19.4326, -99.1332], {icon: inProgressIcon}).addTo(map)
+                    .bindPopup('<b>Reporte #4587</b><br>Poste de luz caído<br>Estado: En proceso')
+                    .openPopup();
+
+                L.marker([19.4345, -99.1350], {icon: pendingIcon}).addTo(map)
+                    .bindPopup('<b>Reporte #4586</b><br>Bache grande<br>Estado: Pendiente');
+
+                L.marker([19.4300, -99.1300], {icon: resolvedIcon}).addTo(map)
+                    .bindPopup('<b>Reporte #4585</b><br>Recolección de basura<br>Estado: Resuelto');
+
+                L.marker([19.4280, -99.1400], {icon: cancelledIcon}).addTo(map)
+                    .bindPopup('<b>Reporte #4584</b><br>Árbol caído<br>Estado: Cancelado');
+            }
+
+            // Initialize heatmap for statistics
+            const heatmapElement = document.getElementById('heatmap');
+            if (heatmapElement) {
+                const heatmap = L.map('heatmap').setView([19.4326, -99.1332], 11);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(heatmap);
+            }
+
+            // Navigation between sections
+            const menuItems = document.querySelectorAll('.menu-item');
+            const contentSections = document.querySelectorAll('.content-section');
+
+            menuItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all menu items and sections
+                    menuItems.forEach(i => i.classList.remove('active'));
+                    contentSections.forEach(s => s.classList.remove('active'));
+                    
+                    // Add active class to clicked menu item
+                    this.classList.add('active');
+                    
+                    // Show corresponding section
+                    const sectionId = this.getAttribute('data-section') + '-section';
+                    document.getElementById(sectionId).classList.add('active');
+
+                    // Cargar reportes cuando se accede a la sección
+                    if (this.getAttribute('data-section') === 'reports') {
+                        loadReports();
+                    }
+
+                    // Cargar dependencias cuando se accede a la sección
+                    if (this.getAttribute('data-section') === 'dependencies') {
+                        loadDependencies();
+                    }
+                });
+            });
+
+            // Dependency card click handler
+            const dependencyCards = document.querySelectorAll('.dependency-card');
+            dependencyCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const dependencyId = this.getAttribute('data-dependency');
+                    showTeamsForDependency(dependencyId);
+                });
+            });
+
+            // Back to dependencies button
+            const backToDependenciesBtn = document.getElementById('back-to-dependencies');
+            if (backToDependenciesBtn) {
+                backToDependenciesBtn.addEventListener('click', function() {
+                    document.getElementById('dependencies-section').classList.add('active');
+                    document.getElementById('teams-section').classList.remove('active');
+                    
+                    // Update menu active state
+                    menuItems.forEach(i => i.classList.remove('active'));
+                    document.querySelector('[data-section="dependencies"]').classList.add('active');
+                });
+            }
+
+            // Add dependency button
+            const addDependencyBtn = document.getElementById('add-dependency-btn');
+            if (addDependencyBtn) {
+                addDependencyBtn.addEventListener('click', function() {
+                    document.getElementById('dependency-modal').classList.add('active');
+                });
+            }
+
+            // Close dependency modal
+            const closeDependencyModalBtn = document.getElementById('close-dependency-modal');
+            if (closeDependencyModalBtn) {
+                closeDependencyModalBtn.addEventListener('click', function() {
+                    document.getElementById('dependency-modal').classList.remove('active');
+                });
+            }
+
+            // Close dependency modal when clicking outside
+            const dependencyModal = document.getElementById('dependency-modal');
+            if (dependencyModal) {
+                dependencyModal.addEventListener('click', function(event) {
+                    if (event.target === this) {
+                        this.classList.remove('active');
+                    }
+                });
+            }
+
+            // Notifications toggle
+            const notificationToggle = document.getElementById('notification-toggle');
+            const notificationsPanel = document.getElementById('notifications-panel');
+
+            if (notificationToggle && notificationsPanel) {
+                notificationToggle.addEventListener('click', function() {
+                    notificationsPanel.classList.toggle('active');
+                });
+
+                // Close notifications when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (!notificationToggle.contains(event.target) && !notificationsPanel.contains(event.target)) {
+                        notificationsPanel.classList.remove('active');
+                    }
+                });
+            }
+
+            // Refresh map button
+            const refreshMapBtn = document.getElementById('refresh-map');
+            if (refreshMapBtn) {
+                refreshMapBtn.addEventListener('click', function() {
+                    const map = L.map('map');
+                    if (map) {
+                        map.invalidateSize();
+                    }
+                    showNotification('Mapa actualizado correctamente', 'success');
+                });
+            }
+
+            // New report button
+            const newReportBtn = document.getElementById('new-report-btn');
+            if (newReportBtn) {
+                newReportBtn.addEventListener('click', function() {
+                    showNotification('Funcionalidad para nuevo reporte - En desarrollo', 'info');
+                });
+            }
+
+            // Function to show teams for a specific dependency
+            function showTeamsForDependency(dependencyId) {
+                const teamsContainer = document.getElementById('teams-container');
+                const departmentTitle = document.getElementById('teams-department-title');
+                
+                if (!teamsContainer || !departmentTitle) return;
+                
+                // Update title
+                departmentTitle.textContent = `Equipos de ${departmentNames[dependencyId]}`;
+                
+                // Clear current teams
+                teamsContainer.innerHTML = '';
+                
+                // Add teams for the selected dependency
+                if (teamsData[dependencyId]) {
+                    teamsData[dependencyId].forEach(team => {
+                        const teamCard = document.createElement('div');
+                        teamCard.className = 'team-card';
+                        teamCard.innerHTML = `
+                            <div class="team-header">
+                                <div class="team-avatar">${getInitials(team.name)}</div>
+                                <div class="team-info">
+                                    <h4>${team.name}</h4>
+                                </div>
+                            </div>
+                            <div class="team-stats">
+                                <div class="team-stat">
+                                    <div class="team-stat-value">${team.inProgress}</div>
+                                    <div class="team-stat-label">En Proceso</div>
+                                </div>
+                                <div class="team-stat">
+                                    <div class="team-stat-value">${team.resolved}</div>
+                                    <div class="team-stat-label">Resueltos</div>
+                                </div>
+                                <div class="team-stat">
+                                    <div class="team-stat-value">${team.avgDays}</div>
+                                    <div class="team-stat-label">Días Prom.</div>
+                                </div>
+                            </div>
+                            <div class="action-buttons">
+                                <button class="btn btn-outline">Ver Detalles</button>
+                                <button class="btn btn-primary">Asignar Tarea</button>
+                            </div>
+                        `;
+                        teamsContainer.appendChild(teamCard);
+                    });
+                }
+                
+                // Show teams section and hide dependencies section
+                document.getElementById('dependencies-section').classList.remove('active');
+                document.getElementById('teams-section').classList.add('active');
+            }
+
+            // Helper function to get initials from name
+            function getInitials(name) {
+                return name.split(' ').map(n => n[0]).join('').toUpperCase();
+            }
+
+            // ===================================================================
+            // FUNCIONES PARA CARGAR REPORTES DESDE LA API
+            // ===================================================================
+
+            // Funciones para cargar reportes desde la API
+            async function loadReports() {
+                try {
+                    const response = await fetch('http://localhost:3000/api/reports');
+                    const result = await response.json();
+
+                    if (result.success) {
+                        displayReports(result.data);
+                    } else {
+                        console.error('Error cargando reportes:', result.message);
+                        showNotification('Error al cargar los reportes', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error cargando reportes:', error);
+                    showNotification('Error de conexión al cargar reportes', 'error');
+                }
+            }
+
+            function displayReports(reports) {
+                const tbody = document.getElementById('reports-table-body');
+                if (!tbody) return;
+                
+                if (reports.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="no-data">No hay reportes disponibles</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = reports.map(report => `
+                    <tr>
+                        <td>#${report._id.substring(report._id.length - 6)}</td>
+                        <td>${report.descripcion.substring(0, 50)}${report.descripcion.length > 50 ? '...' : ''}</td>
+                        <td>${new Date(report.fecha_creacion).toLocaleDateString()}</td>
+                        <td>${report.tipo_incidente}</td>
+                        <td><span class="status-badge status-${getStatusClass(report.estado)}">${getStatusText(report.estado)}</span></td>
+                        <td>${report.dependencia_asignada || 'No asignada'}</td>
+                        <td class="action-buttons">
+                            <button class="action-btn view-details" data-report-id="${report._id}" title="Ver detalles">
+                                <i class="material-icons">visibility</i>
+                            </button>
+                            <button class="action-btn assign-report" data-report-id="${report._id}" title="Asignar">
+                                <i class="material-icons">assignment</i>
+                            </button>
+                            <button class="action-btn edit-report" data-report-id="${report._id}" title="Editar">
+                                <i class="material-icons">edit</i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                // Agregar event listeners a los botones
+                document.querySelectorAll('.view-details').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const reportId = this.getAttribute('data-report-id');
+                        showReportDetails(reportId);
+                    });
+                });
+
+                document.querySelectorAll('.assign-report').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const reportId = this.getAttribute('data-report-id');
+                        assignReport(reportId);
+                    });
+                });
+            }
+
+            function getStatusClass(status) {
+                const statusMap = {
+                    'pendiente': 'pending',
+                    'en_proceso': 'in-progress',
+                    'resuelto': 'resolved',
+                    'cancelado': 'cancelled'
+                };
+                return statusMap[status] || 'pending';
+            }
+
+            function getStatusText(status) {
+                const statusMap = {
+                    'pendiente': 'Pendiente',
+                    'en_proceso': 'En proceso',
+                    'resuelto': 'Resuelto',
+                    'cancelado': 'Cancelado'
+                };
+                return statusMap[status] || 'Pendiente';
+            }
+
+            // Función para formatear fecha detallada
+            function formatDetailedDate(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('es-MX', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+
+            // Función corregida para mostrar detalles del reporte
+            function displayReportDetails(report) {
+                try {
+                    console.log("Datos del reporte recibidos:", report); // Para depurar
+
+                    // 1. Validar que tengamos ubicación (Manejo de estructura anidada)
+                    // MongoDB guarda esto en: report.ubicacion.latitud
+                    const lat = report.ubicacion ? report.ubicacion.latitud : null;
+                    const lng = report.ubicacion ? report.ubicacion.longitud : null;
+                    const direccion = report.ubicacion ? report.ubicacion.direccion : 'Sin dirección';
+
+                    // 2. Actualizar textos del Modal
+                    const modalTitle = document.getElementById('modal-report-title');
+                    if (modalTitle) modalTitle.textContent = `Detalles del Reporte #${report._id.substring(report._id.length - 6)}`;
+                    
+                    const setText = (id, text) => {
+                        const el = document.getElementById(id);
+                        if (el) el.textContent = text || 'N/A';
+                    };
+
+                    setText('modal-description', report.descripcion);
+                    setText('modal-category', report.tipo_incidente);
+                    setText('modal-date', new Date(report.fecha_creacion).toLocaleDateString() + ' ' + new Date(report.fecha_creacion).toLocaleTimeString());
+                    
+                    // Corregido: mostrar el estado visualmente bonito
+                    const modalStatus = document.getElementById('modal-status');
+                    if (modalStatus) {
+                        modalStatus.innerHTML = `<span class="status-badge status-${getStatusClass(report.estado)}">${getStatusText(report.estado)}</span>`;
+                    }
+
+                    setText('modal-dependency', report.dependencia_asignada || 'Sin asignar');
+                    setText('modal-address', direccion);
+                    setText('modal-latlng', lat && lng ? `${lat}, ${lng}` : 'Coordenadas no disponibles');
+
+                    // 3. Manejo de la IMAGEN (Corregido: campo 'imagen' vs 'imageUrl')
+                    const imageSection = document.getElementById('image-section');
+                    const modalImage = document.getElementById('modal-image');
+                    
+                    // Verificamos si existe el campo 'imagen' (que contiene el Base64)
+                    if (report.imagen && modalImage) {
+                        console.log("📸 Cargando imagen...");
+                        modalImage.src = report.imagen; // La imagen ya viene con 'data:image/jpeg;base64,...'
+                        if (imageSection) imageSection.style.display = 'block';
+                    } else {
+                        console.log("⚠️ No hay imagen en este reporte");
+                        if (imageSection) imageSection.style.display = 'none';
+                    }
+
+                    // 4. Actualizar Mapa Mini (Corregido: usa las variables lat/lng que extrajimos arriba)
+                    try {
+                        if (lat && lng) {
+                            updateMiniMap(parseFloat(lat), parseFloat(lng));
+                        } else {
+                            const miniMapContainer = document.getElementById('mini-map');
+                            if (miniMapContainer) miniMapContainer.innerHTML = '<div class="no-map-data">Ubicación no disponible</div>';
+                        }
+                    } catch (mapError) {
+                        console.error('Error mapa:', mapError);
+                    }
+
+                    // 5. Observaciones
+                    const observations = document.getElementById('observations');
+                    if (observations) observations.value = report.notas_administrativas || '';
+
+                    // 6. Abrir Modal
+                    const reportModal = document.getElementById('report-modal');
+                    if (reportModal) reportModal.classList.add('active');
+                    
+                } catch (error) {
+                    console.error('❌ Error en displayReportDetails:', error);
+                    alert('Error al mostrar detalles: ' + error.message);
+                }
+            }
+
+            // Función corregida para actualizar el mapa mini
+            function updateMiniMap(lat, lng) {
+                const miniMapContainer = document.getElementById('mini-map');
+                if (!miniMapContainer) return;
+                
+                // ✅ DESTRUIR MAPA ANTERIOR SI EXISTE
+                if (miniMap) {
+                    miniMap.remove();
+                    miniMap = null;
+                    miniMapMarker = null;
+                }
+                
+                // ✅ LIMPIAR EL CONTENEDOR COMPLETAMENTE
+                miniMapContainer.innerHTML = '';
+                
+                // ✅ CREAR NUEVO MAPA
+                miniMap = L.map('mini-map').setView([lat, lng], 16);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(miniMap);
+                
+                // ✅ AGREGAR MARCADOR
+                miniMapMarker = L.marker([lat, lng]).addTo(miniMap)
+                    .bindPopup('Ubicación del reporte')
+                    .openPopup();
+                
+                // ✅ FORZAR REDIBUJO DEL MAPA (IMPORTANTE PARA MODALES)
+                setTimeout(() => {
+                    if (miniMap) {
+                        miniMap.invalidateSize();
+                    }
+                }, 100);
+            }
+
+            // ✅ FUNCIÓN PARA DESTRUIR EL MAPA CUANDO SE CIERRE EL MODAL
+            function destroyMiniMap() {
+                if (miniMap) {
+                    miniMap.remove();
+                    miniMap = null;
+                    miniMapMarker = null;
+                }
+            }
+
+            // Función para asignar reporte
+            async function assignReport(reportId) {
+                // Aquí puedes implementar la lógica para asignar el reporte a una dependencia
+                showNotification(`Funcionalidad para asignar reporte #${reportId} - En desarrollo`, 'info');
+            }
+
+            // Función para mostrar notificaciones
+            function showNotification(message, type = 'info') {
+                // Crear elemento de notificación
+                const notification = document.createElement('div');
+                notification.className = `notification-toast ${type}`;
+                notification.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i class="material-icons" style="font-size: 18px;">
+                            ${type === 'success' ? 'check_circle' : 
+                              type === 'error' ? 'error' : 
+                              type === 'warning' ? 'warning' : 'info'}
+                        </i>
+                        <span>${message}</span>
+                    </div>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                // Mostrar notificación
+                setTimeout(() => notification.classList.add('show'), 100);
+                
+                // Ocultar y eliminar después de 5 segundos
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                    }, 300);
+                }, 5000);
+            }
+
+            // Filtros
+            const statusFilter = document.getElementById('status-filter');
+            const categoryFilter = document.getElementById('category-filter');
+            const refreshReportsBtn = document.getElementById('refresh-reports');
+
+            if (statusFilter) {
+                statusFilter.addEventListener('change', loadReports);
+            }
+            if (categoryFilter) {
+                categoryFilter.addEventListener('change', loadReports);
+            }
+            if (refreshReportsBtn) {
+                refreshReportsBtn.addEventListener('click', loadReports);
+            }
+
+            // ===================================================================
+            // ✅ CORRECCIÓN: EVENT LISTENERS PARA EL MODAL - VERSIÓN CORREGIDA
+            // ===================================================================
+
+            // ✅ CORREGIDO: Event listeners para cerrar el modal
+            function setupModalListeners() {
+                // Cerrar modal con el botón X
+                const closeModalBtn = document.getElementById('close-modal');
+                if (closeModalBtn) {
+                    closeModalBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('✅ Cerrando modal con X');
+                        const reportModal = document.getElementById('report-modal');
+                        if (reportModal) {
+                            reportModal.classList.remove('active');
+                        }
+                        destroyMiniMap();
+                    });
+                }
+
+                // Cerrar modal con el botón Cancelar
+                const cancelModalBtn = document.getElementById('cancel-modal');
+                if (cancelModalBtn) {
+                    cancelModalBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('✅ Cerrando modal con Cancelar');
+                        const reportModal = document.getElementById('report-modal');
+                        if (reportModal) {
+                            reportModal.classList.remove('active');
+                        }
+                        destroyMiniMap();
+                    });
+                }
+
+                // Cerrar modal al hacer clic fuera
+                const reportModal = document.getElementById('report-modal');
+                if (reportModal) {
+                    reportModal.addEventListener('click', function(event) {
+                        if (event.target === this) {
+                            console.log('✅ Cerrando modal con clic fuera');
+                            this.classList.remove('active');
+                            destroyMiniMap();
+                        }
+                    });
+                }
+            }
+
+            // ✅ Inicializar los event listeners del modal
+            setupModalListeners();
+
+            // Guardar observaciones
+            const saveObservationsBtn = document.getElementById('save-observations');
+            if (saveObservationsBtn) {
+                saveObservationsBtn.addEventListener('click', async function() {
+                    const observations = document.getElementById('observations');
+                    // Aquí puedes implementar la lógica para guardar las observaciones
+                    showNotification('Observaciones guardadas (funcionalidad en desarrollo)', 'success');
+                });
+            }
+
+            // Inicializar funcionalidades adicionales
+            setupPasswordToggle();
+            setupDependencyForm();
+        });
+    </script>
+</body>
+</html>

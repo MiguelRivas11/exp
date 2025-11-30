@@ -1,0 +1,10 @@
+# Ignorar carpetas de dependencias (pesan mucho y se instalan solas)
+node_modules/
+package-lock.json
+
+# Ignorar secretos y contraseñas (POR SEGURIDAD)
+.env
+
+# Ignorar archivos del sistema operativo
+.DS_Store
+Thumbs.db

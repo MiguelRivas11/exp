@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Dependencia - Gestión de Reportes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="style_dashboard.css">
+    <style>
+        /* Estilos adicionales y de tema oscuro (se mantienen igual que en admin-dashboard) */
+        .no-map-data { text-align: center; padding: 40px 20px; color: #6c757d; font-style: italic; background-color: #f8f9fa; border-radius: 8px; border: 1px dashed #dee2e6; }
+        .notification-toast { position: fixed; top: 20px; right: 20px; padding: 12px 20px; border-radius: 8px; color: white; z-index: 10000; max-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateX(400px); transition: transform 0.3s ease; }
+        .notification-toast.show { transform: translateX(0); }
+        .notification-toast.success { background-color: #28a745; }
+        .notification-toast.error { background-color: #dc3545; }
+        body.dark-theme { --light: #1a1d23; --dark: #e9ecef; --gray: #adb5bd; background-color: #12161b; color: #e9ecef; }
+        body.dark-theme .sidebar, body.dark-theme .topbar, body.dark-theme .metric-card, body.dark-theme .chart-container, body.dark-theme .map-container, body.dark-theme .data-table-container, body.dark-theme .modal { background: #1a1d23; color: #e9ecef; border-color: #2d333b; }
+        body.dark-theme .sidebar-header, body.dark-theme .modal-header, body.dark-theme .modal-footer { border-color: #2d333b; }
+        body.dark-theme .search-bar { background: #2d333b; }
+        body.dark-theme .search-bar input { color: #e9ecef; }
+        body.dark-theme .search-bar input::placeholder { color: #adb5bd; }
+        body.dark-theme .menu-item { color: #adb5bd; }
+        body.dark-theme .menu-item:hover, body.dark-theme .menu-item.active { background-color: rgba(0, 123, 255, 0.2); color: var(--primary); }
+        body.dark-theme th, body.dark-theme td { border-color: #2d333b; color: #e9ecef; }
+        body.dark-theme tr:hover { background-color: rgba(0, 123, 255, 0.1); }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar para Dependencia -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <i class="material-icons">business</i>
+                <h2 id="dependency-name-sidebar">Mi Dependencia</h2>
+            </div>
+            <div class="sidebar-menu">
+                <a href="#" class="menu-item active" data-section="dashboard">
+                    <i class="material-icons">dashboard</i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="menu-item" data-section="reports">
+                    <i class="material-icons">assignment</i>
+                    <span>Mis Reportes</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Topbar -->
+            <div class="topbar">
+                <div class="search-bar">
+                    <i class="material-icons">search</i>
+                    <input type="text" placeholder="Buscar en mis reportes...">
+                </div>
+                <div class="topbar-actions">
+                    <div class="user-profile">
+                        <div class="user-avatar" id="user-avatar">DP</div>
+                        <div>
+                            <div id="user-name">Dependencia</div>
+                            <div class="user-role" id="user-role">Usuario de Dependencia</div>
+                        </div>
+                        <button id="logout-btn" style="margin-left: 10px; background: none; border: none; cursor: pointer; color: var(--gray);">
+                            <i class="material-icons">logout</i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Section -->
+            <div class="content-section active" id="dashboard-section">
+                <div class="dashboard">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Reportes Asignados</div>
+                            <i class="material-icons primary">assignment_ind</i>
+                        </div>
+                        <div class="metric-value" id="stat-total-assigned">0</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Reportes En Proceso</div>
+                            <i class="material-icons warning">pending_actions</i>
+                        </div>
+                        <div class="metric-value" id="stat-in-progress">0</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Reportes Resueltos</div>
+                            <i class="material-icons success">check_circle</i>
+                        </div>
+                        <div class="metric-value" id="stat-resolved">0</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Tiempo Promedio Res.</div>
+                            <i class="material-icons gray">schedule</i>
+                        </div>
+                        <div class="metric-value" id="stat-avg-time">0 días</div>
+                    </div>
+                </div>
+                <div class="charts-section">
+                    <div class="map-container" style="width: 100%">
+                        <div class="map-header">
+                            <div class="map-title">Mapa de Mis Incidencias Asignadas</div>
+                        </div>
+                        <div id="map"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Section -->
+            <div class="content-section" id="reports-section">
+                <div class="data-table-container">
+                    <div class="table-header">
+                        <h3>Mis Reportes Asignados</h3>
+                        <div class="table-filters">
+                            <select class="filter-select" id="status-filter">
+                                <option value="">Estado: Todos</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="en_proceso">En proceso</option>
+                                <option value="resuelto">Resuelto</option>
+                            </select>
+                            <button class="btn btn-primary" id="refresh-reports">
+                                <i class="material-icons">refresh</i>
+                                <span>Actualizar</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Descripción</th>
+                                    <th>Fecha</th>
+                                    <th>Categoría</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reports-table-body">
+                                <tr><td colspan="6" class="loading-text">Cargando reportes...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Report Details (simplificado para dependencias) -->
+    <div class="modal-overlay" id="report-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modal-report-title">Detalles del Reporte</h3>
+                <button class="modal-close" id="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- ... (El contenido del modal se mantiene similar, pero las acciones cambiarán) ... -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancel-modal">Cerrar</button>
+                <button class="btn btn-primary" id="save-changes-modal">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentUser = null;
+
+            // 1. Verificar autenticación y obtener datos del usuario
+            const token = localStorage.getItem('citycare-token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Decodificar el token para obtener el tipo de usuario y su ID
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                if (payload.type !== 'dependencia') {
+                    // Si no es un usuario de dependencia, no debería estar aquí
+                    alert('Acceso no autorizado para este dashboard.');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                currentUser = payload;
+                updateUIWithUserData(currentUser);
+            } catch (e) {
+                console.error('Token inválido:', e);
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // 2. Configurar Logout
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+                        localStorage.removeItem('citycare-token');
+                        localStorage.removeItem('citycare-user'); // Limpiar también datos de usuario si existen
+                        window.location.href = 'login.html';
+                    }
+                });
+            }
+
+            // 3. Actualizar UI con datos del usuario
+            function updateUIWithUserData(user) {
+                document.getElementById('dependency-name-sidebar').textContent = user.name;
+                document.getElementById('user-name').textContent = user.name;
+                document.getElementById('user-role').textContent = user.role;
+                document.getElementById('user-avatar').textContent = user.name.substring(0, 2).toUpperCase();
+            }
+
+            // 4. Navegación entre secciones
+            const menuItems = document.querySelectorAll('.menu-item');
+            const contentSections = document.querySelectorAll('.content-section');
+            menuItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    menuItems.forEach(i => i.classList.remove('active'));
+                    contentSections.forEach(s => s.classList.remove('active'));
+                    this.classList.add('active');
+                    const sectionId = this.getAttribute('data-section') + '-section';
+                    document.getElementById(sectionId).classList.add('active');
+                    if (this.getAttribute('data-section') === 'reports') {
+                        loadReportsForDependency();
+                    }
+                });
+            });
+
+            // 5. Cargar datos de reportes para la dependencia
+            async function loadReportsForDependency() {
+                if (!currentUser || !currentUser.id) return;
+
+                // 1. URL apuntando al API Gateway (Puerto 3000)
+                // Nota: El backend debe tener la ruta /by-dependency/:id creada para que esto funcione
+                const apiUrl = `http://localhost:3000/api/reports/by-dependency/${currentUser.id}`;
+                
+                console.log(`Cargando reportes desde: ${apiUrl}`);
+                const tbody = document.getElementById('reports-table-body');
+                tbody.innerHTML = '<tr><td colspan="6" class="loading-text">Cargando reportes...</td></tr>';
+
+                try {
+                    // 2. Petición Real al Servidor
+                    const response = await fetch(apiUrl, { 
+                        method: 'GET',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}` // Enviamos el token por seguridad
+                        } 
+                    });
+
+                    // 3. Obtener respuesta
+                    const result = await response.json();
+                    
+                    // 4. Manejar resultado
+                    if (result.success) {
+                        // Si hay datos, los mostramos
+                        displayReports(result.data);
+                    } else {
+                        // Si el backend dice que hubo error (ej. 404 o 500)
+                        tbody.innerHTML = `<tr><td colspan="6" class="no-data">Mensaje del sistema: ${result.message}</td></tr>`;
+                    }
+
+                } catch (error) {
+                    console.error('Error de red:', error);
+                    tbody.innerHTML = `<tr><td colspan="6" class="no-data">No se pudo conectar con el servidor (Verifica que el Gateway puerto 3000 esté activo).</td></tr>`;
+                }
+            }
+
+            function displayReports(reports) {
+                const tbody = document.getElementById('reports-table-body');
+                if (reports.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="no-data">No tienes reportes asignados.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = reports.map(report => `
+                    <tr>
+                        <td>#${report.id_reporte}</td>
+                        <td>${report.descripcion.substring(0, 50)}...</td>
+                        <td>${new Date(report.fecha_creacion).toLocaleDateString()}</td>
+                        <td>${report.tipo_incidente}</td>
+                        <td><span class="status-badge status-${report.estado}">${report.estado}</span></td>
+                        <td class="action-buttons">
+                            <button class="action-btn view-details" data-report-id="${report.id_reporte}" title="Ver detalles">
+                                <i class="material-icons">visibility</i>
+                            </button>
+                            <button class="action-btn edit-status" data-report-id="${report.id_reporte}" title="Cambiar Estado">
+                                <i class="material-icons">edit</i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            // Carga inicial de datos
+            loadReportsForDependency();
+        });
+    </script>
+</body>
+</html>
