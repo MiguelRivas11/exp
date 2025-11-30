@@ -1,32 +1,114 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard de Dependencia - Gestión de Reportes</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=PT+Sans:wght@400;700&display=swap"
+        rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="style_dashboard.css">
     <style>
         /* Estilos adicionales y de tema oscuro (se mantienen igual que en admin-dashboard) */
-        .no-map-data { text-align: center; padding: 40px 20px; color: #6c757d; font-style: italic; background-color: #f8f9fa; border-radius: 8px; border: 1px dashed #dee2e6; }
-        .notification-toast { position: fixed; top: 20px; right: 20px; padding: 12px 20px; border-radius: 8px; color: white; z-index: 10000; max-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateX(400px); transition: transform 0.3s ease; }
-        .notification-toast.show { transform: translateX(0); }
-        .notification-toast.success { background-color: #28a745; }
-        .notification-toast.error { background-color: #dc3545; }
-        body.dark-theme { --light: #1a1d23; --dark: #e9ecef; --gray: #adb5bd; background-color: #12161b; color: #e9ecef; }
-        body.dark-theme .sidebar, body.dark-theme .topbar, body.dark-theme .metric-card, body.dark-theme .chart-container, body.dark-theme .map-container, body.dark-theme .data-table-container, body.dark-theme .modal { background: #1a1d23; color: #e9ecef; border-color: #2d333b; }
-        body.dark-theme .sidebar-header, body.dark-theme .modal-header, body.dark-theme .modal-footer { border-color: #2d333b; }
-        body.dark-theme .search-bar { background: #2d333b; }
-        body.dark-theme .search-bar input { color: #e9ecef; }
-        body.dark-theme .search-bar input::placeholder { color: #adb5bd; }
-        body.dark-theme .menu-item { color: #adb5bd; }
-        body.dark-theme .menu-item:hover, body.dark-theme .menu-item.active { background-color: rgba(0, 123, 255, 0.2); color: var(--primary); }
-        body.dark-theme th, body.dark-theme td { border-color: #2d333b; color: #e9ecef; }
-        body.dark-theme tr:hover { background-color: rgba(0, 123, 255, 0.1); }
+        .no-map-data {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+            font-style: italic;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px dashed #dee2e6;
+        }
+
+        .notification-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            z-index: 10000;
+            max-width: 300px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification-toast.show {
+            transform: translateX(0);
+        }
+
+        .notification-toast.success {
+            background-color: #28a745;
+        }
+
+        .notification-toast.error {
+            background-color: #dc3545;
+        }
+
+        body.dark-theme {
+            --light: #1a1d23;
+            --dark: #e9ecef;
+            --gray: #adb5bd;
+            background-color: #12161b;
+            color: #e9ecef;
+        }
+
+        body.dark-theme .sidebar,
+        body.dark-theme .topbar,
+        body.dark-theme .metric-card,
+        body.dark-theme .chart-container,
+        body.dark-theme .map-container,
+        body.dark-theme .data-table-container,
+        body.dark-theme .modal {
+            background: #1a1d23;
+            color: #e9ecef;
+            border-color: #2d333b;
+        }
+
+        body.dark-theme .sidebar-header,
+        body.dark-theme .modal-header,
+        body.dark-theme .modal-footer {
+            border-color: #2d333b;
+        }
+
+        body.dark-theme .search-bar {
+            background: #2d333b;
+        }
+
+        body.dark-theme .search-bar input {
+            color: #e9ecef;
+        }
+
+        body.dark-theme .search-bar input::placeholder {
+            color: #adb5bd;
+        }
+
+        body.dark-theme .menu-item {
+            color: #adb5bd;
+        }
+
+        body.dark-theme .menu-item:hover,
+        body.dark-theme .menu-item.active {
+            background-color: rgba(0, 123, 255, 0.2);
+            color: var(--primary);
+        }
+
+        body.dark-theme th,
+        body.dark-theme td {
+            border-color: #2d333b;
+            color: #e9ecef;
+        }
+
+        body.dark-theme tr:hover {
+            background-color: rgba(0, 123, 255, 0.1);
+        }
     </style>
 </head>
+
 <body>
     <div class="app-container">
         <!-- Sidebar para Dependencia -->
@@ -46,6 +128,39 @@
                 </a>
             </div>
         </div>
+        <div class="modal-overlay" id="edit-modal">
+            <div class="modal" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h3>Actualizar Reporte</h3>
+                    <button class="modal-close" id="close-edit">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit-report-id">
+
+                    <div class="setting-group">
+                        <label style="display:block; margin-bottom:5px; font-weight:bold;">Estado Actual:</label>
+                        <select id="edit-status-select" class="filter-select" style="width: 100%; padding: 10px;">
+                            <option value="pendiente">Pendiente 🔴</option>
+                            <option value="en_proceso">En Proceso 🟡</option>
+                            <option value="resuelto">Resuelto 🟢</option>
+                            <option value="cancelado">Cancelado ⚫</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-group" style="margin-top: 15px;">
+                        <label style="display:block; margin-bottom:5px; font-weight:bold;">Notas de Seguimiento:</label>
+                        <textarea id="edit-notes" rows="4"
+                            style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ddd;"
+                            placeholder="Ej: Se envió la unidad 45 a reparar el bache. Quedó listo a las 10:00 AM."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline" id="cancel-edit">Cancelar</button>
+                    <button class="btn btn-primary" id="save-edit">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+
 
         <!-- Main Content -->
         <div class="main-content">
@@ -62,7 +177,8 @@
                             <div id="user-name">Dependencia</div>
                             <div class="user-role" id="user-role">Usuario de Dependencia</div>
                         </div>
-                        <button id="logout-btn" style="margin-left: 10px; background: none; border: none; cursor: pointer; color: var(--gray);">
+                        <button id="logout-btn"
+                            style="margin-left: 10px; background: none; border: none; cursor: pointer; color: var(--gray);">
                             <i class="material-icons">logout</i>
                         </button>
                     </div>
@@ -142,7 +258,9 @@
                                 </tr>
                             </thead>
                             <tbody id="reports-table-body">
-                                <tr><td colspan="6" class="loading-text">Cargando reportes...</td></tr>
+                                <tr>
+                                    <td colspan="6" class="loading-text">Cargando reportes...</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -159,6 +277,46 @@
                 <button class="modal-close" id="close-modal">&times;</button>
             </div>
             <div class="modal-body">
+                <div class="modal-grid">
+                    <div class="modal-section">
+                        <h4>Información General</h4>
+                        <div class="info-group">
+                            <label>Descripción:</label>
+                            <p id="modal-description"></p>
+                        </div>
+                        <div class="info-group">
+                            <label>Categoría:</label>
+                            <p id="modal-category"></p>
+                        </div>
+                        <div class="info-group">
+                            <label>Fecha:</label>
+                            <p id="modal-date"></p>
+                        </div>
+                        <div class="info-group">
+                            <label>Estado Actual:</label>
+                            <p id="modal-status"></p>
+                        </div>
+                        <div class="info-group">
+                            <label>Ubicación:</label>
+                            <p id="modal-address"></p>
+                        </div>
+                    </div>
+
+                    <div class="modal-section">
+                        <h4>Ubicación en Mapa</h4>
+                        <div id="mini-map" style="height: 200px; border-radius: 8px; margin-bottom: 10px;"></div>
+                        <div class="info-group">
+                            <label>Coordenadas:</label>
+                            <p id="modal-latlng"></p>
+                        </div>
+                    </div>
+
+                    <div class="modal-section full-width" id="image-section" style="display: none;">
+                        <h4>Fotografía del Reporte</h4>
+                        <img id="modal-image" src="" alt="Evidencia"
+                            style="max-width: 100%; border-radius: 8px; max-height: 400px; object-fit: contain;">
+                    </div>
+                </div>
                 <!-- ... (El contenido del modal se mantiene similar, pero las acciones cambiarán) ... -->
             </div>
             <div class="modal-footer">
@@ -171,12 +329,16 @@
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             let currentUser = null;
 
             // 1. Verificar autenticación y obtener datos del usuario
-            const token = localStorage.getItem('citycare-token');
+            // 1. MODIFICACIÓN AQUÍ: Buscamos el token en ambos almacenamientos
+            // El operador || significa: "Si no está en localStorage, búscalo en sessionStorage"
+            const token = localStorage.getItem('citycare-token') || sessionStorage.getItem('citycare-token');
+
             if (!token) {
+                // Si no hay llave en ningún lado, mandamos al login
                 window.location.href = 'login.html';
                 return;
             }
@@ -184,32 +346,45 @@
             // Decodificar el token para obtener el tipo de usuario y su ID
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
-                if (payload.type !== 'dependencia') {
-                    // Si no es un usuario de dependencia, no debería estar aquí
+
+                // Validación de Rol (Correcto, usas 'role')
+                if (payload.role !== 'dependencia') {
                     alert('Acceso no autorizado para este dashboard.');
+
+                    // Limpieza de seguridad por si acaso
+                    localStorage.removeItem('citycare-token');
+                    sessionStorage.removeItem('citycare-token');
+
                     window.location.href = 'login.html';
                     return;
                 }
+
                 currentUser = payload;
                 updateUIWithUserData(currentUser);
+
             } catch (e) {
                 console.error('Token inválido:', e);
+                // Limpieza por token corrupto
+                localStorage.removeItem('citycare-token');
+                sessionStorage.removeItem('citycare-token');
                 window.location.href = 'login.html';
                 return;
             }
-
             // 2. Configurar Logout
             const logoutBtn = document.getElementById('logout-btn');
             if (logoutBtn) {
-                logoutBtn.addEventListener('click', function() {
+                logoutBtn.addEventListener('click', function () {
                     if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-                        localStorage.removeItem('citycare-token');
-                        localStorage.removeItem('citycare-user'); // Limpiar también datos de usuario si existen
+                        // LIMPIEZA TOTAL: Borramos todo rastro de la sesión
+                        localStorage.removeItem('citycare-token'); // El token JWT
+                        localStorage.removeItem('citycare-user');  // Los datos del usuario
+                        localStorage.removeItem('citycare-auth');  // <--- ¡ESTA ERA LA CULPABLE!
+
+                        // Ahora sí, al ir al login, el portero te dejará entrar
                         window.location.href = 'login.html';
                     }
                 });
             }
-
             // 3. Actualizar UI con datos del usuario
             function updateUIWithUserData(user) {
                 document.getElementById('dependency-name-sidebar').textContent = user.name;
@@ -222,7 +397,7 @@
             const menuItems = document.querySelectorAll('.menu-item');
             const contentSections = document.querySelectorAll('.content-section');
             menuItems.forEach(item => {
-                item.addEventListener('click', function(e) {
+                item.addEventListener('click', function (e) {
                     e.preventDefault();
                     menuItems.forEach(i => i.classList.remove('active'));
                     contentSections.forEach(s => s.classList.remove('active'));
@@ -242,24 +417,24 @@
                 // 1. URL apuntando al API Gateway (Puerto 3000)
                 // Nota: El backend debe tener la ruta /by-dependency/:id creada para que esto funcione
                 const apiUrl = `http://localhost:3000/api/reports/by-dependency/${currentUser.id}`;
-                
+
                 console.log(`Cargando reportes desde: ${apiUrl}`);
                 const tbody = document.getElementById('reports-table-body');
                 tbody.innerHTML = '<tr><td colspan="6" class="loading-text">Cargando reportes...</td></tr>';
 
                 try {
                     // 2. Petición Real al Servidor
-                    const response = await fetch(apiUrl, { 
+                    const response = await fetch(apiUrl, {
                         method: 'GET',
-                        headers: { 
+                        headers: {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${token}` // Enviamos el token por seguridad
-                        } 
+                        }
                     });
 
                     // 3. Obtener respuesta
                     const result = await response.json();
-                    
+
                     // 4. Manejar resultado
                     if (result.success) {
                         // Si hay datos, los mostramos
@@ -274,7 +449,6 @@
                     tbody.innerHTML = `<tr><td colspan="6" class="no-data">No se pudo conectar con el servidor (Verifica que el Gateway puerto 3000 esté activo).</td></tr>`;
                 }
             }
-
             function displayReports(reports) {
                 const tbody = document.getElementById('reports-table-body');
                 if (reports.length === 0) {
@@ -283,26 +457,294 @@
                 }
                 tbody.innerHTML = reports.map(report => `
                     <tr>
-                        <td>#${report.id_reporte}</td>
+                        <td>#${report._id.substring(report._id.length - 6)}</td>
                         <td>${report.descripcion.substring(0, 50)}...</td>
                         <td>${new Date(report.fecha_creacion).toLocaleDateString()}</td>
                         <td>${report.tipo_incidente}</td>
                         <td><span class="status-badge status-${report.estado}">${report.estado}</span></td>
                         <td class="action-buttons">
-                            <button class="action-btn view-details" data-report-id="${report.id_reporte}" title="Ver detalles">
+                            <button class="action-btn view-details" 
+                                onclick="showReportDetails('${report._id}')" 
+                                title="Ver detalles">
                                 <i class="material-icons">visibility</i>
                             </button>
-                            <button class="action-btn edit-status" data-report-id="${report.id_reporte}" title="Cambiar Estado">
+                            <button class="action-btn edit-status" data-report-id="${report._id}" title="Cambiar Estado">
                                 <i class="material-icons">edit</i>
                             </button>
                         </td>
                     </tr>
                 `).join('');
+
+
+
             }
+            // PEGA ESTO ANTES DE "loadReportsForDependency();" AL FINAL:
+
+            // 1. EL MENSAJERO: Busca los datos
+            async function showReportDetails(reportId) {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/reports/${reportId}`);
+                    const result = await response.json();
+
+                    if (result.success) {
+                        displayReportDetails(result.data);
+                    } else {
+                        alert('Error al cargar detalles: ' + result.message);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('No se pudo conectar con el servidor.');
+                }
+            }
+
+            // 2. EL PINTOR: Muestra los datos en el modal
+            function displayReportDetails(report) {
+                // Títulos y textos
+                document.getElementById('modal-report-title').textContent = `Reporte #${report._id.substring(report._id.length - 6)}`;
+                document.getElementById('modal-description').textContent = report.descripcion;
+                document.getElementById('modal-category').textContent = report.tipo_incidente;
+                document.getElementById('modal-date').textContent = new Date(report.fecha_creacion).toLocaleDateString();
+                document.getElementById('modal-status').innerHTML = `<span class="status-badge status-${report.estado}">${report.estado}</span>`;
+
+                // Ubicación
+                const lat = report.ubicacion ? report.ubicacion.latitud : null;
+                const lng = report.ubicacion ? report.ubicacion.longitud : null;
+                document.getElementById('modal-address').textContent = report.ubicacion ? report.ubicacion.direccion : 'Sin dirección';
+                document.getElementById('modal-latlng').textContent = lat && lng ? `${lat}, ${lng}` : 'N/A';
+
+                // FOTO
+                const imageSection = document.getElementById('image-section');
+                const modalImage = document.getElementById('modal-image');
+                if (report.imagen) {
+                    modalImage.src = report.imagen;
+                    imageSection.style.display = 'block';
+                } else {
+                    imageSection.style.display = 'none';
+                }
+
+                // MAPA
+                if (lat && lng && window.L) {
+                    setTimeout(() => {
+                        const container = document.getElementById('mini-map');
+                        container.innerHTML = ""; // Limpiar mapa anterior
+                        const map = L.map('mini-map').setView([lat, lng], 15);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                        L.marker([lat, lng]).addTo(map);
+                    }, 200);
+                }
+
+                // Abrir Modal
+                document.getElementById('report-modal').classList.add('active');
+            }
+
+            // 3. CERRAR MODAL
+            document.getElementById('close-modal')?.addEventListener('click', () => {
+                document.getElementById('report-modal').classList.remove('active');
+            });
+            document.getElementById('cancel-modal')?.addEventListener('click', () => {
+                document.getElementById('report-modal').classList.remove('active');
+            });
 
             // Carga inicial de datos
             loadReportsForDependency();
         });
+
+
+
+        // PEGA ESTO ANTES DE "loadReportsForDependency();" AL FINAL:
+
+        // 1. EL MENSAJERO: Busca los datos
+        async function showReportDetails(reportId) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/reports/${reportId}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    displayReportDetails(result.data);
+                } else {
+                    alert('Error al cargar detalles: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('No se pudo conectar con el servidor.');
+            }
+        }
+
+        // 2. EL PINTOR: Muestra los datos en el modal
+        function displayReportDetails(report) {
+            // Títulos y textos
+            document.getElementById('modal-report-title').textContent = `Reporte #${report._id.substring(report._id.length - 6)}`;
+            document.getElementById('modal-description').textContent = report.descripcion;
+            document.getElementById('modal-category').textContent = report.tipo_incidente;
+            document.getElementById('modal-date').textContent = new Date(report.fecha_creacion).toLocaleDateString();
+            document.getElementById('modal-status').innerHTML = `<span class="status-badge status-${report.estado}">${report.estado}</span>`;
+
+            // Ubicación
+            const lat = report.ubicacion ? report.ubicacion.latitud : null;
+            const lng = report.ubicacion ? report.ubicacion.longitud : null;
+            document.getElementById('modal-address').textContent = report.ubicacion ? report.ubicacion.direccion : 'Sin dirección';
+            document.getElementById('modal-latlng').textContent = lat && lng ? `${lat}, ${lng}` : 'N/A';
+
+            // FOTO
+            const imageSection = document.getElementById('image-section');
+            const modalImage = document.getElementById('modal-image');
+            if (report.imagen) {
+                modalImage.src = report.imagen;
+                imageSection.style.display = 'block';
+            } else {
+                imageSection.style.display = 'none';
+            }
+
+            // MAPA
+            if (lat && lng && window.L) {
+                setTimeout(() => {
+                    const container = document.getElementById('mini-map');
+                    container.innerHTML = ""; // Limpiar mapa anterior
+                    const map = L.map('mini-map').setView([lat, lng], 15);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                    L.marker([lat, lng]).addTo(map);
+                }, 200);
+            }
+
+            // Abrir Modal
+            document.getElementById('report-modal').classList.add('active');
+        }
+
+        // 3. CERRAR MODAL
+        document.getElementById('close-modal')?.addEventListener('click', () => {
+            document.getElementById('report-modal').classList.remove('active');
+        });
+        document.getElementById('cancel-modal')?.addEventListener('click', () => {
+            document.getElementById('report-modal').classList.remove('active');
+        });
+
+        // 1. ABRIR MODAL DE EDICIÓN
+        function openEditModal(id, currentStatus, currentNotes) {
+            // Llenamos los datos actuales
+            document.getElementById('edit-report-id').value = id;
+            document.getElementById('edit-status-select').value = currentStatus;
+
+            // Si 'currentNotes' viene como "undefined" (texto), lo limpiamos
+            document.getElementById('edit-notes').value = (currentNotes && currentNotes !== 'undefined') ? currentNotes : '';
+
+            document.getElementById('edit-modal').classList.add('active');
+        }
+
+        // 2. GUARDAR CAMBIOS (PUT)
+        document.getElementById('save-edit').addEventListener('click', async function () {
+            const btn = this;
+            const id = document.getElementById('edit-report-id').value;
+            const newStatus = document.getElementById('edit-status-select').value;
+            const newNotes = document.getElementById('edit-notes').value;
+
+            btn.textContent = 'Guardando...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/reports/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        estado: newStatus,
+                        notas_seguimiento: newNotes
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('¡Reporte actualizado!');
+                    document.getElementById('edit-modal').classList.remove('active');
+                    // Recargamos la tabla para ver el nuevo color del estado
+                    loadReportsForDependency();
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Error de conexión');
+            } finally {
+                btn.textContent = 'Guardar Cambios';
+                btn.disabled = false;
+            }
+        });
+        // =========================================================
+        // PEGA ESTO AFUERA DEL BLOQUE ANTERIOR
+        // =========================================================
+
+        // 1. ESTA ES LA FUNCIÓN QUE BUSCA EL BOTÓN (El Mensajero)
+        async function showReportDetails(reportId) {
+            try {
+                console.log("Buscando detalles para:", reportId);
+                const response = await fetch(`http://localhost:3000/api/reports/${reportId}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    fillModalWithData(result.data); // Llamamos a la función que pinta
+                } else {
+                    alert('Error al cargar detalles: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('No se pudo conectar con el servidor.');
+            }
+        }
+
+        // 2. ESTA FUNCIÓN LLENA EL MODAL CON LOS DATOS (El Pintor)
+        function fillModalWithData(report) {
+            // Textos
+            document.getElementById('modal-report-title').textContent = `Reporte #${report._id.substring(report._id.length - 6)}`;
+            document.getElementById('modal-description').textContent = report.descripcion;
+            document.getElementById('modal-category').textContent = report.tipo_incidente;
+            document.getElementById('modal-date').textContent = new Date(report.fecha_creacion).toLocaleDateString();
+            document.getElementById('modal-status').innerHTML = `<span class="status-badge status-${report.estado}">${report.estado}</span>`;
+
+            // Ubicación
+            const lat = report.ubicacion ? report.ubicacion.latitud : null;
+            const lng = report.ubicacion ? report.ubicacion.longitud : null;
+            document.getElementById('modal-address').textContent = report.ubicacion ? report.ubicacion.direccion : 'Sin dirección';
+            document.getElementById('modal-latlng').textContent = lat && lng ? `${lat}, ${lng}` : 'N/A';
+
+            // Foto
+            const imageSection = document.getElementById('image-section');
+            const modalImage = document.getElementById('modal-image');
+            if (report.imagen) {
+                modalImage.src = report.imagen;
+                imageSection.style.display = 'block';
+            } else {
+                imageSection.style.display = 'none';
+            }
+
+            // Mapa Mini (Solo si hay coordenadas)
+            if (lat && lng && window.L) {
+                setTimeout(() => {
+                    const container = document.getElementById('mini-map');
+                    container.innerHTML = ""; // Limpiar mapa viejo
+                    const map = L.map('mini-map').setView([lat, lng], 15);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                    L.marker([lat, lng]).addTo(map);
+                }, 200);
+            }
+
+            // ¡ABRIR EL MODAL!
+            document.getElementById('report-modal').classList.add('active');
+        }
+
+        // 3. CÓDIGO PARA CERRAR EL MODAL
+        // (Esto asegura que la X y el botón Cerrar funcionen)
+        const closeModal = () => document.getElementById('report-modal').classList.remove('active');
+
+        // Buscamos los botones y les damos vida (si existen)
+        const closeBtn = document.getElementById('close-modal');
+        const cancelBtn = document.getElementById('cancel-modal');
+
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+        if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+        // Cerrar modal
+        document.getElementById('close-edit')?.addEventListener('click', () => document.getElementById('edit-modal').classList.remove('active'));
+        document.getElementById('cancel-edit')?.addEventListener('click', () => document.getElementById('edit-modal').classList.remove('active'));
     </script>
 </body>
+
 </html>

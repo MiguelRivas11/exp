@@ -2,6 +2,7 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
+
 // ☢️ LA SOLUCIÓN NUCLEAR (Solo para desarrollo) ☢️
 // Esta línea desactiva la verificación estricta de SSL en todo el proceso.
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';

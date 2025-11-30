@@ -4,35 +4,40 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 exports.login = async (req, res) => {
-    const { email, password } = req.body;
+    // 1. Recibimos la variable 'rememberMe' del frontend
+    const { email, password, rememberMe } = req.body;
+
     try {
-        // 1. Buscar usuario
         const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
         if (result.rows.length === 0) {
             return res.status(401).json({ success: false, message: 'Usuario no encontrado' });
         }
         const user = result.rows[0];
 
-        // 2. Verificar contraseña
         const validPassword = await bcrypt.compare(password, user.password);
         if (!validPassword) {
             return res.status(401).json({ success: false, message: 'Contraseña incorrecta' });
         }
 
-        // 3. Generar Token
+        // 2. LÓGICA DE SEGURIDAD (Duración del Token)
+        // Si activó "Recordar": 7 días ('7d')
+        // Si NO activó: 12 horas ('12h') - O menos si prefieres mayor seguridad
+        const tokenDuration = rememberMe ? '7d' : '12h';
+
         const token = jwt.sign(
             { id: user.id, role: user.role, name: user.name },
             process.env.JWT_SECRET,
-            { expiresIn: '12h' }
+            { expiresIn: tokenDuration } // <--- Usamos la variable aquí
         );
 
-        // 4. Responder
+        const redirectUrl = user.role === 'admin' ? '/admin/admin-dashboard.html' : '/admin/dependencia-dashboard.html';
+
         res.json({
             success: true,
             message: 'Bienvenido a CityCare',
-            token,
-            user: { id: user.id, name: user.name, role: user.role, email: user.email },
-            redirect: user.role === 'admin' ? '/admin/admin-dashboard.html' : '/admin/dependencia-dashboard.html'
+            token: token,
+            redirect: redirectUrl,
+            user: { id: user.id, name: user.name, role: user.role }
         });
 
     } catch (error) {
@@ -47,7 +52,7 @@ exports.register = async (req, res) => {
     try {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
-        
+
         const result = await pool.query(
             'INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, email',
             [name, email, hashedPassword, role]

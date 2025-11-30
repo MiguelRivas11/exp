@@ -32,7 +32,15 @@ const ReportSchema = new mongoose.Schema({
     fecha_creacion: {
         type: Date,
         default: Date.now
-    }
+    },
+    notas_seguimiento: {
+        type: String,
+        default: '' // Empieza vacío
+    },
+    
+
+    dependencia_asignada: { type: String, default: null },
+    fecha_creacion: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model('Report', ReportSchema);

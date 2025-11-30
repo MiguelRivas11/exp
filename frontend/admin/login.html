@@ -1,19 +1,23 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión - CityCare</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=PT+Sans:wght@400;700&display=swap"
+        rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="style_login.css">
-    
+
 </head>
+
 <body data-theme="light">
     <button class="theme-toggle" id="theme-toggle" aria-label="Cambiar tema">
         <i class="material-icons">dark_mode</i>
     </button>
-    
+
     <button class="language-toggle" id="language-toggle" aria-label="Cambiar idioma">
         ES
     </button>
@@ -44,14 +48,8 @@
                     <label for="email" class="form-label">Correo electrónico</label>
                     <div class="input-container">
                         <i class="material-icons input-icon">email</i>
-                        <input 
-                            type="email" 
-                            id="email" 
-                            class="form-input" 
-                            placeholder="correo@ejemplo.com" 
-                            aria-describedby="email-error"
-                            required
-                        >
+                        <input type="email" id="email" class="form-input" placeholder="correo@ejemplo.com"
+                            aria-describedby="email-error" required>
                     </div>
                     <div id="email-error" class="error-message" aria-live="polite"></div>
                 </div>
@@ -60,15 +58,10 @@
                     <label for="password" class="form-label">Contraseña</label>
                     <div class="input-container">
                         <i class="material-icons input-icon">lock</i>
-                        <input 
-                            type="password" 
-                            id="password" 
-                            class="form-input" 
-                            placeholder="••••••••" 
-                            aria-describedby="password-error"
-                            required
-                        >
-                        <button type="button" class="password-toggle" id="password-toggle" aria-label="Mostrar contraseña">
+                        <input type="password" id="password" class="form-input" placeholder="••••••••"
+                            aria-describedby="password-error" required>
+                        <button type="button" class="password-toggle" id="password-toggle"
+                            aria-label="Mostrar contraseña">
                             <i class="material-icons">visibility</i>
                         </button>
                     </div>
@@ -93,7 +86,7 @@
                     <span id="success-text">Inicio de sesión exitoso. Redirigiendo...</span>
                 </div>
 
-                
+
             </form>
 
             <div class="form-footer">
@@ -103,7 +96,7 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Elements
             const loginForm = document.getElementById('login-form');
             const emailInput = document.getElementById('email');
@@ -116,16 +109,16 @@
             const themeToggle = document.getElementById('theme-toggle');
             const languageToggle = document.getElementById('language-toggle');
             const welcomeMessage = document.getElementById('welcome-message');
-            
+
             // Error message elements
             const emailError = document.getElementById('email-error');
             const passwordError = document.getElementById('password-error');
-            
+
             // Set welcome message based on time of day
             function setWelcomeMessage() {
                 const hour = new Date().getHours();
                 let message = '';
-                
+
                 if (hour >= 5 && hour < 12) {
                     message = 'Buenos días, bienvenido a CityCare';
                 } else if (hour >= 12 && hour < 18) {
@@ -133,69 +126,70 @@
                 } else {
                     message = 'Buenas noches, gracias por tu dedicación';
                 }
-                
+
                 welcomeMessage.textContent = message;
             }
-            
+
             // Theme toggle functionality
             function initTheme() {
                 const savedTheme = localStorage.getItem('citycare-theme') || 'light';
                 document.body.setAttribute('data-theme', savedTheme);
-                
+
                 // Update icon based on theme
                 const icon = themeToggle.querySelector('i');
                 icon.textContent = savedTheme === 'light' ? 'dark_mode' : 'light_mode';
             }
-            
-            themeToggle.addEventListener('click', function() {
+
+            themeToggle.addEventListener('click', function () {
                 const currentTheme = document.body.getAttribute('data-theme');
                 const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-                
+
                 document.body.setAttribute('data-theme', newTheme);
                 localStorage.setItem('citycare-theme', newTheme);
-                
+
                 // Update icon
                 const icon = themeToggle.querySelector('i');
                 icon.textContent = newTheme === 'light' ? 'dark_mode' : 'light_mode';
             });
-            
+
             // Language toggle functionality
-            languageToggle.addEventListener('click', function() {
+            languageToggle.addEventListener('click', function () {
                 const currentLang = languageToggle.textContent;
                 const newLang = currentLang === 'ES' ? 'EN' : 'ES';
                 languageToggle.textContent = newLang;
             });
-            
+
             // Password visibility toggle
-            passwordToggle.addEventListener('click', function() {
+            passwordToggle.addEventListener('click', function () {
                 const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
                 passwordInput.setAttribute('type', type);
-                
+
                 // Update icon
                 const icon = passwordToggle.querySelector('i');
                 icon.textContent = type === 'password' ? 'visibility' : 'visibility_off';
             });
-            
+
             // Helper functions for error handling
             function showError(input, errorElement, message) {
                 input.classList.add('error');
                 errorElement.textContent = message;
                 errorElement.classList.add('show');
             }
-            
+
             function hideError(input, errorElement) {
                 input.classList.remove('error');
                 errorElement.classList.remove('show');
             }
-            
+
             // ========== LOGIN SIMPLIFICADO ==========
-            loginForm.addEventListener('submit', async function(e) {
+            // ========== LOGIN SIMPLIFICADO Y MEJORADO ==========
+            loginForm.addEventListener('submit', async function (e) {
                 e.preventDefault();
-                
+
                 // Reset previous errors
                 hideError(emailInput, emailError);
                 hideError(passwordInput, passwordError);
-                
+
                 // Validación básica de campos vacíos
                 if (!emailInput.value.trim() || !passwordInput.value.trim()) {
                     showError(emailInput, emailError, 'Todos los campos son requeridos');
@@ -203,13 +197,17 @@
                     return;
                 }
 
+                // 1. CAPTURAR LA OPCIÓN "RECORDAR SESIÓN"
+                // Buscamos el checkbox en el HTML (asegúrate de que tenga id="remember")
+                const isRemembered = document.getElementById('remember') ? document.getElementById('remember').checked : false;
+
                 // Show loading state
                 submitButton.disabled = true;
                 loader.style.display = 'block';
                 submitButton.querySelector('span').textContent = 'Autenticando...';
 
                 try {
-                    // 📡 LLAMADA A LA API DE NODE.JS
+                    // 📡 LLAMADA A LA API (Apuntando al Gateway Puerto 3000)
                     const response = await fetch('http://localhost:3000/api/auth/login', {
                         method: 'POST',
                         headers: {
@@ -217,7 +215,8 @@
                         },
                         body: JSON.stringify({
                             email: emailInput.value,
-                            password: passwordInput.value
+                            password: passwordInput.value,
+                            rememberMe: isRemembered // <--- Enviamos la preferencia al servidor
                         })
                     });
 
@@ -228,45 +227,61 @@
                         loader.style.display = 'none';
                         successText.textContent = data.message;
                         successMessage.classList.add('show');
-                        
-                        // 💾 GUARDAR DATOS EN LOCALSTORAGE
-                        localStorage.setItem('citycare-token', data.token);
-                        localStorage.setItem('citycare-user', JSON.stringify(data.user));
-                        localStorage.setItem('citycare-auth', 'true');
-                        
+
+                        // LIMPIEZA TOTAL (Para evitar conflictos con sesiones viejas)
+                        localStorage.removeItem('citycare-token');
+                        localStorage.removeItem('citycare-user');
+                        localStorage.removeItem('citycare-auth');
+                        sessionStorage.removeItem('citycare-token');
+                        sessionStorage.removeItem('citycare-user');
+                        sessionStorage.removeItem('citycare-auth');
+
+                        // 💾 ALMACENAMIENTO INTELIGENTE
+                        if (isRemembered) {
+                            // Si eligió recordar: LocalStorage (Persistente)
+                            localStorage.setItem('citycare-token', data.token);
+                            localStorage.setItem('citycare-user', JSON.stringify(data.user));
+                            localStorage.setItem('citycare-auth', 'true');
+                        } else {
+                            // Si NO eligió recordar: SessionStorage (Temporal)
+                            sessionStorage.setItem('citycare-token', data.token);
+                            sessionStorage.setItem('citycare-user', JSON.stringify(data.user));
+                            sessionStorage.setItem('citycare-auth', 'true');
+                        }
+
                         // 🔄 REDIRIGIR AL DASHBOARD
                         setTimeout(() => {
                             window.location.href = data.redirect || 'admin-dashboard.html';
                         }, 2000);
-                        
+
                     } else {
                         // ❌ ERROR EN LOGIN
                         loader.style.display = 'none';
                         submitButton.disabled = false;
                         submitButton.querySelector('span').textContent = 'Iniciar sesión';
-                        
+
                         showError(emailInput, emailError, data.message);
                         showError(passwordInput, passwordError, data.message);
                     }
-                    
+
                 } catch (error) {
                     // 🌐 ERROR DE CONEXIÓN
                     console.error('Error en login:', error);
                     loader.style.display = 'none';
                     submitButton.disabled = false;
                     submitButton.querySelector('span').textContent = 'Iniciar sesión';
-                    
+
                     showError(emailInput, emailError, 'Error de conexión con el servidor');
                     showError(passwordInput, passwordError, 'Verifica que la API esté ejecutándose');
                 }
             });
-            
+
             // // Auto-fill demo credentials for testing
             // function autoFillCredentials() {
             //     emailInput.value = 'admin@citycare.gov';
             //     passwordInput.value = 'admin123';
             // }
-            
+
             // Check if user is already logged in
             function checkAuthStatus() {
                 const isAuthenticated = localStorage.getItem('citycare-auth');
@@ -275,15 +290,16 @@
                     window.location.href = 'admin-dashboard.html';
                 }
             }
-            
+
             // Initialize
             setWelcomeMessage();
             initTheme();
             checkAuthStatus();
-            
+
             // For demo purposes, auto-fill credentials after a short delay
             setTimeout(autoFillCredentials, 1000);
         });
     </script>
 </body>
+
 </html>

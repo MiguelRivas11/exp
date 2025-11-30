@@ -15,6 +15,16 @@ console.log("🚦 Iniciando CityCare API Gateway...");
 
 // --- RUTAS DE MICROSERVICIOS (Redirección de Tráfico) ---
 
+// ... otras rutas ...
+
+// 4. Tráfico de IA -> Puerto 3004 (NUEVO)
+ // Asegúrate de tener esto arriba
+app.use('/api/ai', proxy('http://localhost:3004', {
+    proxyReqPathResolver: (req) => {
+        return `/api/ai${req.url}`;
+    }
+}));
+
 // 1. Tráfico de Autenticación -> Puerto 3001
 app.use('/api/auth', proxy('http://localhost:3001', {
     proxyReqPathResolver: (req) => {

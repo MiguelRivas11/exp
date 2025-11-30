@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Gestión de Reportes Ciudadanos</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=PT+Sans:wght@400;700&display=swap"
+        rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="style_dashboard.css">
@@ -18,7 +21,7 @@
             border-radius: 8px;
             border: 1px dashed #dee2e6;
         }
-        
+
         .notification-toast {
             position: fixed;
             top: 20px;
@@ -28,28 +31,28 @@
             color: white;
             z-index: 10000;
             max-width: 300px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             transform: translateX(400px);
             transition: transform 0.3s ease;
         }
-        
+
         .notification-toast.show {
             transform: translateX(0);
         }
-        
+
         .notification-toast.success {
             background-color: #28a745;
         }
-        
+
         .notification-toast.error {
             background-color: #dc3545;
         }
-        
+
         .notification-toast.warning {
             background-color: #ffc107;
             color: #000;
         }
-        
+
         .notification-toast.info {
             background-color: #17a2b8;
         }
@@ -189,11 +192,11 @@
             border-radius: 50%;
         }
 
-        input:checked + .toggle-slider {
+        input:checked+.toggle-slider {
             background-color: #007bff;
         }
 
-        input:checked + .toggle-slider:before {
+        input:checked+.toggle-slider:before {
             transform: translateX(30px);
         }
 
@@ -230,6 +233,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="app-container">
         <!-- Sidebar -->
@@ -282,7 +286,8 @@
                             <div class="user-role">Administrador</div>
                         </div>
                         <!-- Botón de logout añadido aquí -->
-                        <button id="logout-btn" style="margin-left: 10px; background: none; border: none; cursor: pointer; color: var(--gray);">
+                        <button id="logout-btn"
+                            style="margin-left: 10px; background: none; border: none; cursor: pointer; color: var(--gray);">
                             <i class="material-icons">logout</i>
                         </button>
                     </div>
@@ -715,7 +720,7 @@
                             <p id="modal-address"></p>
                         </div>
                     </div>
-                    
+
                     <div class="modal-section">
                         <h4>Ubicación en Mapa</h4>
                         <div id="mini-map"></div>
@@ -724,19 +729,20 @@
                             <p id="modal-latlng"></p>
                         </div>
                     </div>
-                    
+
                     <div class="modal-section full-width" id="image-section" style="display: none;">
                         <h4>Fotografía del Reporte</h4>
-                        <img id="modal-image" src="" alt="Fotografía del reporte" style="max-width: 100%; border-radius: 8px;">
+                        <img id="modal-image" src="" alt="Fotografía del reporte"
+                            style="max-width: 100%; border-radius: 8px;">
                     </div>
-                    
+
                     <div class="modal-section full-width">
                         <h4>Historial del Reporte</h4>
                         <div class="timeline" id="modal-timeline">
                             <!-- El historial se cargará aquí -->
                         </div>
                     </div>
-                    
+
                     <div class="modal-section full-width">
                         <h4>Observaciones Administrativas</h4>
                         <textarea id="observations" rows="3"></textarea>
@@ -766,11 +772,13 @@
                         </div>
                         <div class="setting-group">
                             <label>Descripción *</label>
-                            <textarea id="dependency-description" rows="3" placeholder="Descripción de las funciones de la dependencia" required></textarea>
+                            <textarea id="dependency-description" rows="3"
+                                placeholder="Descripción de las funciones de la dependencia" required></textarea>
                         </div>
                         <div class="setting-group">
                             <label>Responsable *</label>
-                            <input type="text" id="dependency-responsible" placeholder="Nombre del responsable" required>
+                            <input type="text" id="dependency-responsible" placeholder="Nombre del responsable"
+                                required>
                         </div>
                         <div class="setting-group">
                             <label>Email de Contacto *</label>
@@ -783,7 +791,8 @@
                         <div class="setting-group">
                             <label>Contraseña *</label>
                             <div class="password-input-container">
-                                <input type="password" id="dependency-password" placeholder="Ingrese una contraseña segura" required>
+                                <input type="password" id="dependency-password"
+                                    placeholder="Ingrese una contraseña segura" required>
                                 <button type="button" class="toggle-password" id="toggle-dependency-password">
                                     <i class="material-icons">visibility</i>
                                 </button>
@@ -792,7 +801,8 @@
                         <div class="setting-group">
                             <label>Confirmar Contraseña *</label>
                             <div class="password-input-container">
-                                <input type="password" id="dependency-confirm-password" placeholder="Confirme la contraseña" required>
+                                <input type="password" id="dependency-confirm-password"
+                                    placeholder="Confirme la contraseña" required>
                                 <button type="button" class="toggle-password" id="toggle-dependency-confirm-password">
                                     <i class="material-icons">visibility</i>
                                 </button>
@@ -819,27 +829,38 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // ✅ VERIFICACIÓN DE AUTENTICACIÓN Y CONFIGURACIÓN DE LOGOUT
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // 1. Primero verificamos autenticación
-            const isAuthenticated = localStorage.getItem('citycare-auth');
-            if (isAuthenticated !== 'true') {
+            // 1. VERIFICACIÓN DE SEGURIDAD (Busca en ambos almacenamientos)
+            // El operador || significa: "Si no está en el bolsillo, búscalo en la mano"
+            const token = localStorage.getItem('citycare-token') || sessionStorage.getItem('citycare-token');
+
+            if (!token) {
+                // Si no hay token en ningún lado, no pasas.
                 window.location.href = 'login.html';
-                return; // Detenemos la ejecución si no está autenticado
+                return; // Detenemos la ejecución
             }
-            
+
+            // Opcional: Recuperar datos del usuario también (por si quieres mostrar el nombre)
+            const userStr = localStorage.getItem('citycare-user') || sessionStorage.getItem('citycare-user');
+            let currentUser = null;
+            if (userStr) {
+                currentUser = JSON.parse(userStr);
+            }
+
             // 2. Configuración del tema oscuro
             const darkThemeToggle = document.getElementById('dark-theme-toggle');
             const body = document.body;
-            
+
             // Cargar preferencia del tema
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme === 'dark') {
                 body.classList.add('dark-theme');
                 darkThemeToggle.checked = true;
             }
-            
+
             // Event listener para el toggle del tema oscuro
-            darkThemeToggle.addEventListener('change', function() {
+            darkThemeToggle.addEventListener('change', function () {
                 if (this.checked) {
                     body.classList.add('dark-theme');
                     localStorage.setItem('theme', 'dark');
@@ -850,14 +871,19 @@
                     showNotification('Tema claro activado', 'success');
                 }
             });
-            
+
             // 3. Configuramos el logout
+            // 2. Configurar Logout (CORREGIDO)
             const logoutBtn = document.getElementById('logout-btn');
             if (logoutBtn) {
-                logoutBtn.addEventListener('click', function() {
+                logoutBtn.addEventListener('click', function () {
                     if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-                        localStorage.removeItem('citycare-auth');
-                        localStorage.removeItem('citycare-user');
+                        // LIMPIEZA TOTAL: Borramos todo rastro de la sesión
+                        localStorage.removeItem('citycare-token'); // El token JWT
+                        localStorage.removeItem('citycare-user');  // Los datos del usuario
+                        localStorage.removeItem('citycare-auth');  // <--- ¡ESTA ERA LA CULPABLE!
+
+                        // Ahora sí, al ir al login, el portero te dejará entrar
                         window.location.href = 'login.html';
                     }
                 });
@@ -872,35 +898,35 @@
                     console.error('Elemento dependencies-grid no encontrado');
                     return;
                 }
-                
+
                 grid.innerHTML = '<div class="loading-text">Cargando dependencias...</div>';
 
                 try {
                     // Petición al API Gateway -> Redirige al puerto 3003
                     const response = await fetch('http://localhost:3000/api/dependencies');
-                    
+
                     // Verificar si la respuesta es OK
                     if (!response.ok) {
                         throw new Error(`Error HTTP: ${response.status}`);
                     }
-                    
+
                     const result = await response.json();
 
                     if (result.success && result.data && result.data.length > 0) {
                         grid.innerHTML = ''; // Limpiar loading
-                        
+
                         result.data.forEach(dep => {
                             const card = document.createElement('div');
                             card.className = 'dependency-card';
                             // Agregamos data-id para poder usarlo luego si queremos editar
                             card.setAttribute('data-id', dep.id);
-                            
+
                             // Sanitizar datos para prevenir XSS y manejar valores nulos
                             const name = dep.name || 'Sin nombre';
                             const description = dep.description || 'Sin descripción';
                             const responsible = dep.responsible || 'No asignado';
                             const email = dep.email || 'No disponible';
-                            
+
                             card.innerHTML = `
                                 <div class="dependency-header">
                                     <div class="dependency-icon">
@@ -941,7 +967,7 @@
                 const dependencyModal = document.getElementById('dependency-modal');
 
                 if (saveDependencyBtn) {
-                    saveDependencyBtn.addEventListener('click', async function() {
+                    saveDependencyBtn.addEventListener('click', async function () {
                         // 1. Obtener todos los datos del formulario
                         const name = document.getElementById('dependency-name').value;
                         const description = document.getElementById('dependency-description').value;
@@ -1023,10 +1049,10 @@
                             // SI TODO SALIÓ BIEN:
                             alert('¡Dependencia creada exitosamente!');
                             dependencyModal.classList.remove('active');
-                            
+
                             // Limpiar formulario
                             document.getElementById('dependency-form').reset();
-                            
+
                             // Recargar la lista para ver la nueva dependencia
                             loadDependencies();
 
@@ -1039,11 +1065,11 @@
                         }
                     });
                 }
-                
+
                 // Configuración de botones de cancelar/cerrar (se mantiene igual)
                 const closeBtns = [document.getElementById('cancel-dependency'), document.getElementById('close-dependency-modal')];
                 closeBtns.forEach(btn => {
-                    if(btn) btn.addEventListener('click', () => {
+                    if (btn) btn.addEventListener('click', () => {
                         dependencyModal.classList.remove('active');
                         // Limpiar formulario al cancelar
                         document.getElementById('dependency-form').reset();
@@ -1059,7 +1085,7 @@
                 const confirmPasswordInput = document.getElementById('dependency-confirm-password');
 
                 if (togglePassword && passwordInput) {
-                    togglePassword.addEventListener('click', function() {
+                    togglePassword.addEventListener('click', function () {
                         const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
                         passwordInput.setAttribute('type', type);
                         this.innerHTML = type === 'password' ? '<i class="material-icons">visibility</i>' : '<i class="material-icons">visibility_off</i>';
@@ -1067,25 +1093,25 @@
                 }
 
                 if (toggleConfirmPassword && confirmPasswordInput) {
-                    toggleConfirmPassword.addEventListener('click', function() {
+                    toggleConfirmPassword.addEventListener('click', function () {
                         const type = confirmPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
                         confirmPasswordInput.setAttribute('type', type);
                         this.innerHTML = type === 'password' ? '<i class="material-icons">visibility</i>' : '<i class="material-icons">visibility_off</i>';
                     });
                 }
             }
-            
+
             // Variables globales para controlar el mapa mini
             let miniMap = null;
             let miniMapMarker = null;
-            
+
             // ===================================================================
             // ✅ FUNCIÓN CORREGIDA: showReportDetails - EL MENSAJERO
             // ===================================================================
             async function showReportDetails(reportId) {
                 try {
                     console.log(`🔍 Buscando detalles del reporte ID: ${reportId}`);
-                    
+
                     // 1. Petición al API Gateway (Puerto 3000)
                     const response = await fetch(`http://localhost:3000/api/reports/${reportId}`);
                     const result = await response.json();
@@ -1102,7 +1128,7 @@
                     alert('Error de conexión con el servidor.');
                 }
             }
-            
+
             // 5. 🚀 AHORA SÍ - TODO EL CÓDIGO ORIGINAL DEL DASHBOARD
             const teamsData = {
                 'alumbrado': [
@@ -1261,36 +1287,36 @@
                     className: 'marker-icon',
                     iconSize: [16, 16]
                 });
-                
+
                 const inProgressIcon = L.divIcon({
                     html: '<div style="background-color: #FFC107; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>',
                     className: 'marker-icon',
                     iconSize: [16, 16]
                 });
-                
+
                 const pendingIcon = L.divIcon({
                     html: '<div style="background-color: #DC3545; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>',
                     className: 'marker-icon',
                     iconSize: [16, 16]
                 });
-                
+
                 const cancelledIcon = L.divIcon({
                     html: '<div style="background-color: #6C757D; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>',
                     className: 'marker-icon',
                     iconSize: [16, 16]
                 });
 
-                L.marker([19.4326, -99.1332], {icon: inProgressIcon}).addTo(map)
+                L.marker([19.4326, -99.1332], { icon: inProgressIcon }).addTo(map)
                     .bindPopup('<b>Reporte #4587</b><br>Poste de luz caído<br>Estado: En proceso')
                     .openPopup();
 
-                L.marker([19.4345, -99.1350], {icon: pendingIcon}).addTo(map)
+                L.marker([19.4345, -99.1350], { icon: pendingIcon }).addTo(map)
                     .bindPopup('<b>Reporte #4586</b><br>Bache grande<br>Estado: Pendiente');
 
-                L.marker([19.4300, -99.1300], {icon: resolvedIcon}).addTo(map)
+                L.marker([19.4300, -99.1300], { icon: resolvedIcon }).addTo(map)
                     .bindPopup('<b>Reporte #4585</b><br>Recolección de basura<br>Estado: Resuelto');
 
-                L.marker([19.4280, -99.1400], {icon: cancelledIcon}).addTo(map)
+                L.marker([19.4280, -99.1400], { icon: cancelledIcon }).addTo(map)
                     .bindPopup('<b>Reporte #4584</b><br>Árbol caído<br>Estado: Cancelado');
             }
 
@@ -1308,16 +1334,16 @@
             const contentSections = document.querySelectorAll('.content-section');
 
             menuItems.forEach(item => {
-                item.addEventListener('click', function(e) {
+                item.addEventListener('click', function (e) {
                     e.preventDefault();
-                    
+
                     // Remove active class from all menu items and sections
                     menuItems.forEach(i => i.classList.remove('active'));
                     contentSections.forEach(s => s.classList.remove('active'));
-                    
+
                     // Add active class to clicked menu item
                     this.classList.add('active');
-                    
+
                     // Show corresponding section
                     const sectionId = this.getAttribute('data-section') + '-section';
                     document.getElementById(sectionId).classList.add('active');
@@ -1337,7 +1363,7 @@
             // Dependency card click handler
             const dependencyCards = document.querySelectorAll('.dependency-card');
             dependencyCards.forEach(card => {
-                card.addEventListener('click', function() {
+                card.addEventListener('click', function () {
                     const dependencyId = this.getAttribute('data-dependency');
                     showTeamsForDependency(dependencyId);
                 });
@@ -1346,10 +1372,10 @@
             // Back to dependencies button
             const backToDependenciesBtn = document.getElementById('back-to-dependencies');
             if (backToDependenciesBtn) {
-                backToDependenciesBtn.addEventListener('click', function() {
+                backToDependenciesBtn.addEventListener('click', function () {
                     document.getElementById('dependencies-section').classList.add('active');
                     document.getElementById('teams-section').classList.remove('active');
-                    
+
                     // Update menu active state
                     menuItems.forEach(i => i.classList.remove('active'));
                     document.querySelector('[data-section="dependencies"]').classList.add('active');
@@ -1359,7 +1385,7 @@
             // Add dependency button
             const addDependencyBtn = document.getElementById('add-dependency-btn');
             if (addDependencyBtn) {
-                addDependencyBtn.addEventListener('click', function() {
+                addDependencyBtn.addEventListener('click', function () {
                     document.getElementById('dependency-modal').classList.add('active');
                 });
             }
@@ -1367,7 +1393,7 @@
             // Close dependency modal
             const closeDependencyModalBtn = document.getElementById('close-dependency-modal');
             if (closeDependencyModalBtn) {
-                closeDependencyModalBtn.addEventListener('click', function() {
+                closeDependencyModalBtn.addEventListener('click', function () {
                     document.getElementById('dependency-modal').classList.remove('active');
                 });
             }
@@ -1375,7 +1401,7 @@
             // Close dependency modal when clicking outside
             const dependencyModal = document.getElementById('dependency-modal');
             if (dependencyModal) {
-                dependencyModal.addEventListener('click', function(event) {
+                dependencyModal.addEventListener('click', function (event) {
                     if (event.target === this) {
                         this.classList.remove('active');
                     }
@@ -1387,12 +1413,12 @@
             const notificationsPanel = document.getElementById('notifications-panel');
 
             if (notificationToggle && notificationsPanel) {
-                notificationToggle.addEventListener('click', function() {
+                notificationToggle.addEventListener('click', function () {
                     notificationsPanel.classList.toggle('active');
                 });
 
                 // Close notifications when clicking outside
-                document.addEventListener('click', function(event) {
+                document.addEventListener('click', function (event) {
                     if (!notificationToggle.contains(event.target) && !notificationsPanel.contains(event.target)) {
                         notificationsPanel.classList.remove('active');
                     }
@@ -1402,7 +1428,7 @@
             // Refresh map button
             const refreshMapBtn = document.getElementById('refresh-map');
             if (refreshMapBtn) {
-                refreshMapBtn.addEventListener('click', function() {
+                refreshMapBtn.addEventListener('click', function () {
                     const map = L.map('map');
                     if (map) {
                         map.invalidateSize();
@@ -1414,7 +1440,7 @@
             // New report button
             const newReportBtn = document.getElementById('new-report-btn');
             if (newReportBtn) {
-                newReportBtn.addEventListener('click', function() {
+                newReportBtn.addEventListener('click', function () {
                     showNotification('Funcionalidad para nuevo reporte - En desarrollo', 'info');
                 });
             }
@@ -1423,15 +1449,15 @@
             function showTeamsForDependency(dependencyId) {
                 const teamsContainer = document.getElementById('teams-container');
                 const departmentTitle = document.getElementById('teams-department-title');
-                
+
                 if (!teamsContainer || !departmentTitle) return;
-                
+
                 // Update title
                 departmentTitle.textContent = `Equipos de ${departmentNames[dependencyId]}`;
-                
+
                 // Clear current teams
                 teamsContainer.innerHTML = '';
-                
+
                 // Add teams for the selected dependency
                 if (teamsData[dependencyId]) {
                     teamsData[dependencyId].forEach(team => {
@@ -1466,7 +1492,7 @@
                         teamsContainer.appendChild(teamCard);
                     });
                 }
-                
+
                 // Show teams section and hide dependencies section
                 document.getElementById('dependencies-section').classList.remove('active');
                 document.getElementById('teams-section').classList.add('active');
@@ -1502,7 +1528,7 @@
             function displayReports(reports) {
                 const tbody = document.getElementById('reports-table-body');
                 if (!tbody) return;
-                
+
                 if (reports.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="7" class="no-data">No hay reportes disponibles</td></tr>';
                     return;
@@ -1532,14 +1558,14 @@
 
                 // Agregar event listeners a los botones
                 document.querySelectorAll('.view-details').forEach(button => {
-                    button.addEventListener('click', function() {
+                    button.addEventListener('click', function () {
                         const reportId = this.getAttribute('data-report-id');
                         showReportDetails(reportId);
                     });
                 });
 
                 document.querySelectorAll('.assign-report').forEach(button => {
-                    button.addEventListener('click', function() {
+                    button.addEventListener('click', function () {
                         const reportId = this.getAttribute('data-report-id');
                         assignReport(reportId);
                     });
@@ -1593,7 +1619,7 @@
                     // 2. Actualizar textos del Modal
                     const modalTitle = document.getElementById('modal-report-title');
                     if (modalTitle) modalTitle.textContent = `Detalles del Reporte #${report._id.substring(report._id.length - 6)}`;
-                    
+
                     const setText = (id, text) => {
                         const el = document.getElementById(id);
                         if (el) el.textContent = text || 'N/A';
@@ -1602,7 +1628,7 @@
                     setText('modal-description', report.descripcion);
                     setText('modal-category', report.tipo_incidente);
                     setText('modal-date', new Date(report.fecha_creacion).toLocaleDateString() + ' ' + new Date(report.fecha_creacion).toLocaleTimeString());
-                    
+
                     // Corregido: mostrar el estado visualmente bonito
                     const modalStatus = document.getElementById('modal-status');
                     if (modalStatus) {
@@ -1616,7 +1642,7 @@
                     // 3. Manejo de la IMAGEN (Corregido: campo 'imagen' vs 'imageUrl')
                     const imageSection = document.getElementById('image-section');
                     const modalImage = document.getElementById('modal-image');
-                    
+
                     // Verificamos si existe el campo 'imagen' (que contiene el Base64)
                     if (report.imagen && modalImage) {
                         console.log("📸 Cargando imagen...");
@@ -1646,7 +1672,7 @@
                     // 6. Abrir Modal
                     const reportModal = document.getElementById('report-modal');
                     if (reportModal) reportModal.classList.add('active');
-                    
+
                 } catch (error) {
                     console.error('❌ Error en displayReportDetails:', error);
                     alert('Error al mostrar detalles: ' + error.message);
@@ -1657,28 +1683,28 @@
             function updateMiniMap(lat, lng) {
                 const miniMapContainer = document.getElementById('mini-map');
                 if (!miniMapContainer) return;
-                
+
                 // ✅ DESTRUIR MAPA ANTERIOR SI EXISTE
                 if (miniMap) {
                     miniMap.remove();
                     miniMap = null;
                     miniMapMarker = null;
                 }
-                
+
                 // ✅ LIMPIAR EL CONTENEDOR COMPLETAMENTE
                 miniMapContainer.innerHTML = '';
-                
+
                 // ✅ CREAR NUEVO MAPA
                 miniMap = L.map('mini-map').setView([lat, lng], 16);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '&copy; OpenStreetMap contributors'
                 }).addTo(miniMap);
-                
+
                 // ✅ AGREGAR MARCADOR
                 miniMapMarker = L.marker([lat, lng]).addTo(miniMap)
                     .bindPopup('Ubicación del reporte')
                     .openPopup();
-                
+
                 // ✅ FORZAR REDIBUJO DEL MAPA (IMPORTANTE PARA MODALES)
                 setTimeout(() => {
                     if (miniMap) {
@@ -1710,19 +1736,19 @@
                 notification.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <i class="material-icons" style="font-size: 18px;">
-                            ${type === 'success' ? 'check_circle' : 
-                              type === 'error' ? 'error' : 
-                              type === 'warning' ? 'warning' : 'info'}
+                            ${type === 'success' ? 'check_circle' :
+                        type === 'error' ? 'error' :
+                            type === 'warning' ? 'warning' : 'info'}
                         </i>
                         <span>${message}</span>
                     </div>
                 `;
-                
+
                 document.body.appendChild(notification);
-                
+
                 // Mostrar notificación
                 setTimeout(() => notification.classList.add('show'), 100);
-                
+
                 // Ocultar y eliminar después de 5 segundos
                 setTimeout(() => {
                     notification.classList.remove('show');
@@ -1758,7 +1784,7 @@
                 // Cerrar modal con el botón X
                 const closeModalBtn = document.getElementById('close-modal');
                 if (closeModalBtn) {
-                    closeModalBtn.addEventListener('click', function(e) {
+                    closeModalBtn.addEventListener('click', function (e) {
                         e.preventDefault();
                         e.stopPropagation();
                         console.log('✅ Cerrando modal con X');
@@ -1773,7 +1799,7 @@
                 // Cerrar modal con el botón Cancelar
                 const cancelModalBtn = document.getElementById('cancel-modal');
                 if (cancelModalBtn) {
-                    cancelModalBtn.addEventListener('click', function(e) {
+                    cancelModalBtn.addEventListener('click', function (e) {
                         e.preventDefault();
                         e.stopPropagation();
                         console.log('✅ Cerrando modal con Cancelar');
@@ -1788,7 +1814,7 @@
                 // Cerrar modal al hacer clic fuera
                 const reportModal = document.getElementById('report-modal');
                 if (reportModal) {
-                    reportModal.addEventListener('click', function(event) {
+                    reportModal.addEventListener('click', function (event) {
                         if (event.target === this) {
                             console.log('✅ Cerrando modal con clic fuera');
                             this.classList.remove('active');
@@ -1804,7 +1830,7 @@
             // Guardar observaciones
             const saveObservationsBtn = document.getElementById('save-observations');
             if (saveObservationsBtn) {
-                saveObservationsBtn.addEventListener('click', async function() {
+                saveObservationsBtn.addEventListener('click', async function () {
                     const observations = document.getElementById('observations');
                     // Aquí puedes implementar la lógica para guardar las observaciones
                     showNotification('Observaciones guardadas (funcionalidad en desarrollo)', 'success');
@@ -1817,4 +1843,5 @@
         });
     </script>
 </body>
+
 </html>
